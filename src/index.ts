@@ -1,3 +1,3 @@
-import { startReact } from "./client";
+import { startReact } from './client'
 
-startReact();
+startReact()

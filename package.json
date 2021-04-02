@@ -17,7 +17,9 @@
     "test:client:watch": "craco test ",
     "test:server": "jest /src/server",
     "test:server:watch": "jest /src/server --watch",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "eslint --ext .js,.ts,.jsx,.tsx --quiet",
+    "pretty": "prettier --write src"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
@@ -51,7 +53,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "http-proxy-middleware": "^1.1.0",
     "husky": "^6.0.0",
-    "lint-staged": "10.5.3",
+    "lint-staged": "^10.5.4",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "react-scripts": "4.0.3",
@@ -62,6 +64,13 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ]
+  },
+  "lint-staged": {
+    "src/**/*.{j,t}s?(x)|e2e/cypress/**/*.{j,t}s?(x)": [
+      "prettier --write",
+      "yarn lint",
+      "git add"
     ]
   },
   "browserslist": {
