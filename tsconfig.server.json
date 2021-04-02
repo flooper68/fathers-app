@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "baseUrl": "src",
+    "strict": true,
+    "target": "es6",
+    "module": "commonjs",
+    "isolatedModules": false,
+    "outDir": "./build-server",
+    "noEmit": false,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false,
+    "esModuleInterop": true
+  },
+  "include": ["src/server", "src/shared"],
+  "exclude": ["src/client"]
+}

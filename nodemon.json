@@ -1,0 +1,11 @@
+{
+  "verbose": true,
+  "ignore": ["node_modules/*", "build/*", "src/client/**/*"],
+  "execMap": {
+    "rb": "ruby",
+    "pde": "processing --sketch={{pwd}} --run"
+  },
+  "watch": ["src/server/", "src/shared/"],
+  "ext": "ts",
+  "exec": "ts-node --files --transpile-only --project tsconfig.server.json src/server/main.ts"
+}
