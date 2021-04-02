@@ -12,8 +12,9 @@
     "build": "yarn build:client && yarn build:server",
     "build:client": "craco build",
     "build:server": "tsc --project tsconfig.server.json",
-    "test:client": "craco test",
-    "test:server": "jest /src/server --watch"
+    "test:client": "craco test --watchAll=false",
+    "test:server": "jest /src/server",
+    "prepare": "husky install"
   },
   "dependencies": {
     "dotenv": "^8.2.0",

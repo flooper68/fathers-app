@@ -10,8 +10,6 @@ export const App: React.FunctionComponent = () => {
       .then((data) => console.log(data))
   }, [])
 
-  console.log('test')
-
   return (
     <div className="App">
       <header className="App-header">

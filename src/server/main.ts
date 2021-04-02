@@ -1,7 +1,8 @@
-import { ProducModel } from './models/product.'
 import express from 'express'
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
+
+import { ProducModel } from './models/product.'
 
 config()
 
