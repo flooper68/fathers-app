@@ -29,7 +29,7 @@ const app = express()
 const port = 3001
 
 app.get('/api', (req, res) => {
-  console.log('test api call success')
+  console.log('test api call success asdg ')
   res.json({ success: true })
 })
 

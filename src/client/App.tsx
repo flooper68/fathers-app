@@ -23,7 +23,7 @@ export const App: React.FunctionComponent = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          Learn React adsga sdg
         </a>
       </header>
     </div>
