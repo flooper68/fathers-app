@@ -12,8 +12,11 @@
     "build": "yarn build:client && yarn build:server",
     "build:client": "craco build",
     "build:server": "tsc --project tsconfig.server.json",
+    "test": "yarn test:client && yarn test:server",
     "test:client": "craco test --watchAll=false",
+    "test:client:watch": "craco test ",
     "test:server": "jest /src/server",
+    "test:server:watch": "jest /src/server --watch",
     "prepare": "husky install"
   },
   "dependencies": {
