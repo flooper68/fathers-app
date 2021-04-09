@@ -1,37 +1,29 @@
+import { LineItemModel } from './models/line-item'
+import { OrderModel } from './models/order'
+import { CategoryModel } from './models/category'
 import express from 'express'
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
+import { graphqlHTTP } from 'express-graphql'
 
-import { ProducModel } from './models/product.'
+import { appSchema } from './schema/schema'
+import { appResolvers } from './resolvers/resolver'
+import { Logger } from './../shared/logger'
+import { builWooCommerceClient } from './services/woocommerce'
+import { buildDataSync } from './services/data-sync'
 
 config()
 
-// var WooCommerceAPI = require("woocommerce-api");
-
-// var WooCommerce = new WooCommerceAPI({
-//   url: "https://fatherscoffee.cz",
-//   consumerKey: "ck_4a5c540c9f7cc8c714e5e1617c5ccb4e46f21224",
-//   consumerSecret: "cs_1f2be67f40a6f8a4a77f0f4dec111630790e8158",
-//   wpAPI: true,
-//   version: "wc/v1",
-// });
-
-// WooCommerce.getAsync("products?per_page=50").then(function (result) {
-//   console.log(
-//     JSON.parse(result.toJSON().body).map((data) => ({
-//       name: data.name,
-//       categories: data.categories.map((cat) => cat.name),
-//     }))
-//   );
-// });
-
 const app = express()
-const port = 3001
 
-app.get('/api', (req, res) => {
-  console.log('test api call success asdf ')
-  res.json({ success: true })
-})
+app.use(
+  '/api/graphql',
+  graphqlHTTP({
+    schema: appSchema,
+    rootValue: appResolvers,
+    graphiql: true,
+  })
+)
 
 mongoose
   .connect(
@@ -42,16 +34,42 @@ mongoose
     }
   )
   .then(() => {
-    console.log('db connected')
+    Logger.info('Db connected')
+    app.listen(process.env.SERVER_PORT, async () => {
+      Logger.info(`App listening at port ${process.env.SERVER_PORT}`)
+
+      const woocommerceClient = await builWooCommerceClient()
+      const dataSync = buildDataSync(woocommerceClient)
+
+      // const result = await woocommerceClient.getProducts(1)
+      // const result = await woocommerceClient.getAllProducts()
+      // const result = await woocommerceClient.getProduct(12379)
+      // const result = await woocommerceClient.getOrder(12437)
+      // // const result = await woocommerceClient.getOrders(1)
+      // // const result = await woocommerceClient.getCategory(276)
+      // // const result = await woocommerceClient.getAllCategories()
+
+      // const today = moment()
+      // const from_date = today.startOf('week')
+
+      // Logger.debug(from_date.toISOString())
+
+      // const result = await woocommerceClient.getAllOrdersAfterDate(
+      //   from_date.toISOString()
+      // )
+
+      // const result = await woocommerceClient.getAllOrdersFromThisWeek()
+
+      // await dataSync.syncCategories()
+      // await dataSync.syncProducts()
+      // await dataSync.syncThisWeekOrders()
+
+      // const result = await LineItemModel.findOne().populate("order_item");
+      const result = await OrderModel.findOne().populate('items')
+      Logger.debug(result)
+    })
   })
+
   .catch((e) => {
-    console.log('Error connecting to db', e)
+    Logger.error('Error connecting to db', e)
   })
-
-app.listen(port, async () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-
-  const product = new ProducModel({ name: 'test' })
-  await product.save()
-  console.log('saved', product)
-})
