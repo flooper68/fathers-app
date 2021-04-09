@@ -7,5 +7,6 @@
   },
   "watch": ["src/server/", "src/shared/"],
   "ext": "ts",
-  "exec": "ts-node --files --transpile-only --project tsconfig.server.json src/server/main.ts"
+  "exec": "ts-node --files --transpile-only --project tsconfig.server.json src/server/main.ts",
+  "restart": "fuser -k 3002/tcp"
 }
