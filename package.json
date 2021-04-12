@@ -25,6 +25,7 @@
     "@apollo/client": "^3.3.13",
     "@types/react-router-dom": "^5.1.7",
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
+    "antd": "^4.15.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-graphql": "^0.12.0",

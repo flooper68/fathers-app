@@ -1,11 +1,19 @@
-export type WooCommerceProductResponse = {
-  id: number
-  name: string
-  date_modified: string
-}
-
 export interface Product {
   id: number
   name: string
-  date_modified: string
+  dateModified: string
+  slug: string
+  description: string
+  shortDescription: string
+  price: number
+  weight: number
+  categories: {
+    id: number
+    name: string
+  }[]
+  images: {
+    id: number
+    src: string
+    name: string
+  }[]
 }

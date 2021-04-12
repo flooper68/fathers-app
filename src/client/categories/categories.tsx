@@ -1,17 +1,21 @@
+import { Table } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 import { Logger } from '../../shared/logger'
 import { useApiClient } from '../api/api-client'
 
-const CategorytItem = (props: { id: number; name: string }) => {
-  const { id, name } = props
-
-  return (
-    <div style={{ minHeight: 40 }}>
-      Id: {id} Name: {name}
-    </div>
-  )
-}
+const columns = [
+  {
+    title: 'Id',
+    dataIndex: 'id',
+    key: 'id',
+  },
+  {
+    title: 'Název',
+    dataIndex: 'name',
+    key: 'name',
+  },
+]
 
 export const Categories = () => {
   const [rows, setRows] = useState<any[]>([])
@@ -37,10 +41,14 @@ export const Categories = () => {
         height: '100%',
       }}
     >
-      <h2>Categories</h2>
-      {rows.map((row) => (
-        <CategorytItem key={row.id} id={row.id} name={row.name} />
-      ))}
+      <Table
+        rowKey="id"
+        columns={columns}
+        dataSource={rows}
+        style={{ width: '100%', height: '100%', overflow: 'auto' }}
+        pagination={false}
+        sticky={true}
+      />
     </div>
   )
 }

@@ -5,6 +5,19 @@ export const ProductQuery = gql`
     products {
       id
       name
+      description
+      shortDescription
+      dateModified
+      price
+      categories {
+        id
+        name
+      }
+      images {
+        id
+        src
+        name
+      }
     }
   }
 `

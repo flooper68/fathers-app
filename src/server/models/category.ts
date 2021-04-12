@@ -1,9 +1,21 @@
 import moongose, { Schema } from 'mongoose'
 
+import { CategoryDocument } from './../types/category'
+
+const CATEGORY_SCHEMA_VERSION = 1
+
 const categorySchema = new Schema({
-  _id: { type: Number, required: true },
+  id: { type: Number, required: true },
+  schemaVersion: {
+    type: Number,
+    default: CATEGORY_SCHEMA_VERSION,
+    required: true,
+  },
   name: { type: String, required: true },
   description: { type: String },
 })
 
-export const CategoryModel = moongose.model('Category', categorySchema)
+export const CategoryModel = moongose.model<CategoryDocument>(
+  'Category',
+  categorySchema
+)

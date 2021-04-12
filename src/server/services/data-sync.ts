@@ -1,12 +1,9 @@
-import { LineItemModel } from './../models/line-item'
-import { OrderModel } from './../models/order'
 import { CategoryModel } from './../models/category'
 import { Model } from 'mongoose'
 
 import { Logger } from '../../shared/logger'
 import { ProductModel } from '../models/product.'
 import { WooCommerceClient } from './woocommerce'
-import { Order } from '../../shared/types/order'
 
 const isSameDateString = (dateOne: string, dateTwo: string) => {
   return new Date(dateOne).getTime() === new Date(dateTwo).getTime()
@@ -17,12 +14,14 @@ const mapToMongoId = <Entity extends { id: number }>(item: Entity) => {
 }
 
 const buildSyncEntityWithModifiedCheck = <
-  Entity extends { id: number; date_modified: string }
+  Entity extends { id: number; dateModified: string }
 >(
   client: WooCommerceClient,
   clientCallExtractor: (
     client: WooCommerceClient
   ) => () => Promise<{ rows: Entity[]; totalCount: string }>,
+  // Can not be solved by generics due to @types/mongoose typing
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   model: Model<any>
 ) => async () => {
   Logger.debug('Syncing entity')
@@ -31,32 +30,28 @@ const buildSyncEntityWithModifiedCheck = <
 
   await Promise.all(
     rows.map(async (row) => {
-      const dbProduct = await model
+      const dbEntity = await model
         .findOne({
           id: row.id,
         })
         .exec()
 
       if (
-        dbProduct &&
-        isSameDateString(dbProduct.date_modified, row.date_modified)
+        dbEntity &&
+        isSameDateString(dbEntity.dateModified, row.dateModified)
       ) {
         Logger.debug(`Entity ${row.id} exists and was not modified.`)
         return
-      } else if (dbProduct) {
-        Logger.debug(`Entity ${row.id} exists and was modified, updating.`)
-        await dbProduct.update({ row })
+      } else if (dbEntity) {
+        Logger.debug(`Entity ${row.id} exists and was modified, updating.`, row)
+        await dbEntity.update({ ...row })
       } else {
-        Logger.debug(`Entity ${row.id} does not exist, creating new entry.`)
-        const { line_items, ...data } = (row as unknown) as Order
-        const product = new model(mapToMongoId(data))
-        await product.save()
-        await Promise.all(
-          line_items.map(async (item) => {
-            const lineItem = new LineItemModel(mapToMongoId(item))
-            await lineItem.save()
-          })
+        Logger.debug(
+          `Entity ${row.id} does not exist, creating new entry.`,
+          row
         )
+        const entity = new model(row)
+        await entity.save()
       }
     })
   )
@@ -68,6 +63,8 @@ const buildSyncEntity = <Entity extends { id: number }>(
   clientCallExtractor: (
     client: WooCommerceClient
   ) => () => Promise<{ rows: Entity[]; totalCount: string }>,
+  // Can not be solved by generics due to @types/mongoose typing
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   model: Model<any>
 ) => async () => {
   Logger.debug('Syncing entity')
@@ -76,15 +73,19 @@ const buildSyncEntity = <Entity extends { id: number }>(
 
   await Promise.all(
     rows.map(async (row) => {
-      const dbProduct = await model.findById(row.id).exec()
+      const dbEntity = await model
+        .findOne({
+          id: row.id,
+        })
+        .exec()
 
-      if (dbProduct) {
+      if (dbEntity) {
         Logger.debug(`Entity ${row.id} exists, updating.`)
-        await dbProduct.update({ row })
+        await dbEntity.update({ row })
       } else {
         Logger.debug(`Entity ${row.id} does not exist, creating new entry.`)
-        const product = new model(mapToMongoId(row))
-        await product.save()
+        const dbEntity = new model(row)
+        await dbEntity.save()
       }
     })
   )
@@ -98,11 +99,11 @@ export const buildDataSync = (client: WooCommerceClient) => {
       (client: WooCommerceClient) => client.getAllProducts,
       ProductModel
     ),
-    syncThisWeekOrders: buildSyncEntityWithModifiedCheck(
-      client,
-      (client: WooCommerceClient) => client.getAllOrdersFromThisWeek,
-      OrderModel
-    ),
+    // syncThisWeekOrders: buildSyncEntityWithModifiedCheck(
+    //   client,
+    //   (client: WooCommerceClient) => client.getAllOrdersFromThisWeek,
+    //   OrderModel
+    // ),
     syncCategories: buildSyncEntity(
       client,
       (client: WooCommerceClient) => client.getAllCategories,

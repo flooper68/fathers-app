@@ -1,21 +1,17 @@
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api'
 import { config } from 'dotenv'
 
-import {
-  Product,
-  WooCommerceProductResponse,
-} from './../../shared/types/product'
+import { Product } from './../../shared/types/product'
 import { Order, WooCommerceOrderResponse } from './../../shared/types/order'
-import {
-  Category,
-  WooCommerceCategoryResponse,
-} from './../../shared/types/category'
+import { Category } from './../../shared/types/category'
 import { Logger } from '../../shared/logger'
 import moment from 'moment'
 import {
   LineItem,
   LineItemWooCommerceResponse,
 } from '../../shared/types/line-item'
+import { WooCommerceCategoryResponse } from '../types/category'
+import { WooCommerceProductResponse } from '../types/product'
 
 config()
 
@@ -35,9 +31,23 @@ const getCounts = (headers: { [key: string]: string }) => {
 }
 
 const mapProduct = (item: WooCommerceProductResponse): Product => ({
-  name: item.name,
   id: item.id,
-  date_modified: item.date_modified,
+  name: item.name,
+  dateModified: item.date_modified,
+  slug: item.slug,
+  description: item.description,
+  shortDescription: item.short_description,
+  price: parseInt(item.price, 10),
+  wight: item.weight,
+  categories: item.categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+  })),
+  images: item.images.map((image) => ({
+    id: image.id,
+    name: image.name,
+    src: image.src,
+  })),
 })
 
 const mapLineItem = (order: number) => (
@@ -79,6 +89,7 @@ const buildGetAllItems = <Entity, EntityWooCommerceResponse>(
   const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
     `${url}?page=1&per_page=${ITEMS_PER_PAGE}`
   )
+
   const { totalCount, pagesCount } = getCounts(headers)
   Logger.debug(`Total pages count ${pagesCount}`)
 
@@ -145,10 +156,11 @@ const buildGetItem = <Entity, EntityWooCommerceResponse>(
 ) => async (id: number) => {
   const { data } = await client.get<EntityWooCommerceResponse>(`${url}/${id}`)
 
+  console.log(data)
   return mappingFunction(data)
 }
 
-export const builWooCommerceClient = async () => {
+export const buildWooCommerceClient = async () => {
   const client: WooCommerceApi = new WooCommerceRestApi({
     url: process.env.WOOCOMMERCE_URL,
     consumerKey: process.env.WOOCOMMERCE_KEY,
@@ -193,5 +205,5 @@ export const builWooCommerceClient = async () => {
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
 
 export type WooCommerceClient = ThenArg<
-  ReturnType<typeof builWooCommerceClient>
+  ReturnType<typeof buildWooCommerceClient>
 >

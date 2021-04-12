@@ -9,8 +9,9 @@ import { graphqlHTTP } from 'express-graphql'
 import { appSchema } from './schema/schema'
 import { appResolvers } from './resolvers/resolver'
 import { Logger } from './../shared/logger'
-import { builWooCommerceClient } from './services/woocommerce'
+import { buildWooCommerceClient } from './services/woocommerce'
 import { buildDataSync } from './services/data-sync'
+import moment from 'moment'
 
 config()
 
@@ -38,16 +39,16 @@ mongoose
     app.listen(process.env.SERVER_PORT, async () => {
       Logger.info(`App listening at port ${process.env.SERVER_PORT}`)
 
-      const woocommerceClient = await builWooCommerceClient()
+      const woocommerceClient = await buildWooCommerceClient()
       const dataSync = buildDataSync(woocommerceClient)
 
       // const result = await woocommerceClient.getProducts(1)
       // const result = await woocommerceClient.getAllProducts()
-      // const result = await woocommerceClient.getProduct(12379)
+      const result = await woocommerceClient.getProduct(12379)
       // const result = await woocommerceClient.getOrder(12437)
       // // const result = await woocommerceClient.getOrders(1)
       // // const result = await woocommerceClient.getCategory(276)
-      // // const result = await woocommerceClient.getAllCategories()
+      // const result = await woocommerceClient.getAllCategories()
 
       // const today = moment()
       // const from_date = today.startOf('week')
@@ -62,10 +63,11 @@ mongoose
 
       // await dataSync.syncCategories()
       // await dataSync.syncProducts()
+
       // await dataSync.syncThisWeekOrders()
 
       // const result = await LineItemModel.findOne().populate("order_item");
-      const result = await OrderModel.findOne().populate('items')
+      // const result = await OrderModel.findOne().populate('items')
       Logger.debug(result)
     })
   })
