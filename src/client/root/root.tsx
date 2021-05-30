@@ -8,7 +8,6 @@ const { Header, Sider, Content } = Layout
 import { Navigation } from './navigation'
 import { Products } from '../products/products'
 import { ApiClientContext, useBuildApiClient } from '../api/api-client'
-import { Categories } from '../categories/categories'
 import { Orders } from '../orders/orders'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import Title from 'antd/lib/typography/Title'
@@ -88,9 +87,6 @@ export const Root: React.FunctionComponent = () => {
               <Switch>
                 <Route path="/products">
                   <Products />
-                </Route>
-                <Route path="/categories">
-                  <Categories />
                 </Route>
                 <Route path="/Orders">
                   <Orders />

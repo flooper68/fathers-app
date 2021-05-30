@@ -6,7 +6,7 @@
     "resolveJsonModule": true,
     "baseUrl": "src",
     "strict": true,
-    "target": "es6",
+    "target": "es5",
     "module": "commonjs",
     "isolatedModules": false,
     "outDir": "./build-server",

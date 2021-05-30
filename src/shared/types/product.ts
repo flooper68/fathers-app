@@ -1,12 +1,12 @@
-export interface Product {
+export type WooCommerceProductResponse = {
   id: number
   name: string
-  dateModified: string
   slug: string
+  date_modified: string
   description: string
-  shortDescription: string
-  price: number
-  weight: number
+  short_description: string
+  price: string
+  weight: string
   categories: {
     id: number
     name: string
@@ -16,4 +16,25 @@ export interface Product {
     src: string
     name: string
   }[]
+  variations: number[]
+}
+
+export type WooCommerceProductVariationResponse = {
+  id: number
+  weight: string
+}
+
+export interface Product {
+  id: number
+  name: string
+  dateModified: string
+  description: string
+  shortDescription: string
+  images: { id: number; name: string; src: string }[]
+  categories: { id: number; name: string }[]
+  variations: {
+    id: number
+    weight: number
+  }[]
+  roastedCoffeeCategoryId?: string
 }

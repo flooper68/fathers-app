@@ -1,22 +1,28 @@
 import moongose, { Schema } from 'mongoose'
 
-const orderSchema = new Schema({
-  _id: { type: Number },
+import { Order } from '../../shared/types/order'
+import { DocumentWithSchemaVersion } from './../types/general'
+
+interface OrderDocument extends Omit<Order, 'id'>, DocumentWithSchemaVersion {}
+
+const orderSchema = new Schema<OrderDocument>({
+  id: { type: Number, required: true },
   number: { type: Number, required: true },
-  date_created: { type: Date, required: true },
-  date_modified: { type: Date, required: true },
+  dateCreated: { type: String, required: true },
+  dateModified: { type: String, required: true },
   status: { type: String, required: true },
-  currency: { type: String, required: true },
-  product: { type: Number, ref: 'Products' },
+  roastingId: { type: String },
+  roasted: { type: Boolean, required: true, default: false },
+  lineItems: [
+    new Schema({
+      id: { type: Number, required: true },
+      name: { type: String },
+      productName: { type: String },
+      productId: { type: Number, required: true },
+      variationId: { type: Number, required: true },
+      quantity: { type: Number, required: true },
+    }),
+  ],
 })
 
-orderSchema.virtual('items', {
-  ref: 'LineItem',
-  localField: '_id',
-  foreignField: 'order',
-})
-
-orderSchema.set('toObject', { virtuals: true })
-orderSchema.set('toJSON', { virtuals: true })
-
-export const OrderModel = moongose.model('Order', orderSchema)
+export const OrderModel = moongose.model<OrderDocument>('Order', orderSchema)

@@ -1,17 +1,13 @@
-import { LineItemModel } from './models/line-item'
-import { OrderModel } from './models/order'
-import { CategoryModel } from './models/category'
 import express from 'express'
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
 import { graphqlHTTP } from 'express-graphql'
 
-import { appSchema } from './schema/schema'
-import { appResolvers } from './resolvers/resolver'
 import { Logger } from './../shared/logger'
 import { buildWooCommerceClient } from './services/woocommerce'
 import { buildDataSync } from './services/data-sync'
-import moment from 'moment'
+import { appSchema } from './api/schema/schema'
+import { appResolvers } from './api/resolvers/resolver'
 
 config()
 
@@ -41,34 +37,8 @@ mongoose
 
       const woocommerceClient = await buildWooCommerceClient()
       const dataSync = buildDataSync(woocommerceClient)
-
-      // const result = await woocommerceClient.getProducts(1)
-      // const result = await woocommerceClient.getAllProducts()
-      const result = await woocommerceClient.getProduct(12379)
-      // const result = await woocommerceClient.getOrder(12437)
-      // // const result = await woocommerceClient.getOrders(1)
-      // // const result = await woocommerceClient.getCategory(276)
-      // const result = await woocommerceClient.getAllCategories()
-
-      // const today = moment()
-      // const from_date = today.startOf('week')
-
-      // Logger.debug(from_date.toISOString())
-
-      // const result = await woocommerceClient.getAllOrdersAfterDate(
-      //   from_date.toISOString()
-      // )
-
-      // const result = await woocommerceClient.getAllOrdersFromThisWeek()
-
-      // await dataSync.syncCategories()
-      // await dataSync.syncProducts()
-
-      // await dataSync.syncThisWeekOrders()
-
-      // const result = await LineItemModel.findOne().populate("order_item");
-      // const result = await OrderModel.findOne().populate('items')
-      Logger.debug(result)
+      await dataSync.syncProducts()
+      await dataSync.startOrderSyncJob()
     })
   })
 

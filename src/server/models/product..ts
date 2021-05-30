@@ -1,19 +1,13 @@
 import { Schema, model, Model } from 'mongoose'
 
-import { ProductDocument } from './../types/product'
+import { Product } from '../../shared/types/product'
+import { DocumentWithSchemaVersion } from './../types/general'
 
 const PRODUCT_SCHEMA_VERSION = 1
 
-const productCategorySchema = new Schema({
-  id: { type: Number },
-  name: String,
-})
-
-const productImageSchema = new Schema({
-  id: { type: Number },
-  name: String,
-  src: String,
-})
+interface ProductDocument
+  extends Omit<Product, 'id'>,
+    DocumentWithSchemaVersion {}
 
 const productSchema: Schema<ProductDocument> = new Schema({
   id: { type: Number, required: true },
@@ -24,12 +18,28 @@ const productSchema: Schema<ProductDocument> = new Schema({
   },
   name: { type: String, required: true },
   dateModified: { type: Date, required: true },
-  slug: { type: String, required: true },
   description: { type: String },
   shortDescription: { type: String },
-  price: { type: Number },
-  categories: [productCategorySchema],
-  images: [productImageSchema],
+  images: [
+    new Schema({
+      id: { type: Number, required: true },
+      name: { type: String },
+      src: { type: String },
+    }),
+  ],
+  variations: [
+    new Schema({
+      id: { type: Number, required: true },
+      weight: { type: Number },
+    }),
+  ],
+  categories: [
+    new Schema({
+      id: { type: Number, required: true },
+      name: { type: String },
+    }),
+  ],
+  roastedCoffeeCategoryId: { type: String },
 })
 
 export const ProductModel: Model<ProductDocument> = model<ProductDocument>(
