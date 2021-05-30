@@ -8,7 +8,7 @@ import {
   RoastedCoffeeMap,
   GreenCoffeeMap,
   BATCH_SIZE,
-} from '../settings'
+} from './roasting_settings'
 
 interface RoastableLineItem {
   greenCoffee: number
