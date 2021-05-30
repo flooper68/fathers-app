@@ -1,87 +1,56 @@
 import _ from 'lodash'
 
-import { Logger } from '../../shared/logger'
-import { OrderLineItem } from '../../shared/types/order'
 import { ProductModel } from '../models/product.'
 import {
-  RoastedCoffeeProductMap,
   RoastedCoffeeMap,
   GreenCoffeeMap,
   BATCH_SIZE,
-} from './roasting_settings'
+} from './roasting-settings'
+import { OrderDocument } from './../models/order'
 
-interface RoastableLineItem {
-  greenCoffee: number
-  greenCoffeeName: string
-  roastedCoffee: number
-  roastedCoffeeName: string
-  totalWeight: number
-  orderId: number
-}
-
-interface Roasting {
-  greenCoffee: Record<
-    number,
-    {
-      name: string
-      weight: number
-    }
-  >
-  roastedCoffee: Record<
-    number,
-    {
-      name: string
-      weight: number
-      numberOfBatches?: number
-    }
-  >
-
-  totalWeight: number
-  orders: number[]
-}
-
-export const isLineItemRoastable = (lineItem: OrderLineItem) => {
-  if (!RoastedCoffeeProductMap[lineItem.productId]) {
-    Logger.debug(`Item not roastable`, lineItem)
-  }
-
-  return !!RoastedCoffeeProductMap[lineItem.productId]
-}
-
-export const mapLineItemForRoasting = async (
-  lineItem: OrderLineItem & { orderId }
-): Promise<RoastableLineItem> => {
-  const product = await ProductModel.findOne({
-    id: lineItem.productId,
-  })
-  const roastedCoffee =
-    RoastedCoffeeMap[RoastedCoffeeProductMap[lineItem.productId]]
-
-  const greenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
-
-  const variation = product.variations.find(
-    (variation) => variation.id === lineItem.variationId
+export const processOrdersToBatches = async (orders: OrderDocument[]) => {
+  const lineItems = orders.flatMap((order) =>
+    order.toObject().lineItems.map((item) => ({ ...item, orderId: order.id }))
   )
 
-  if (!variation) {
-    throw new Error('Missing product variation')
-  }
+  const lineItemsWithProducts = await Promise.all(
+    lineItems.map(async (lineItem) => {
+      const product = await ProductModel.findOne({
+        id: lineItem.productId,
+      })
 
-  const totalWeight = lineItem.quantity * variation.weight
+      return { ...lineItem, product }
+    })
+  )
 
-  return {
-    greenCoffee: greenCoffee.id,
-    greenCoffeeName: greenCoffee.name,
-    roastedCoffee: roastedCoffee.id,
-    roastedCoffeeName: roastedCoffee.name,
-    totalWeight,
-    orderId: lineItem.orderId,
-  }
-}
+  const roastableLineItems = lineItemsWithProducts
+    .filter((item) => item.product.roastedCoffeeCategoryId)
+    .map((item) => {
+      const roastedCoffee =
+        RoastedCoffeeMap[item.product.roastedCoffeeCategoryId]
 
-export const reduceLineItemsForRoasting = (
-  roastableLineItems: RoastableLineItem[]
-): Roasting => {
+      const greenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
+
+      const variation = item.product.variations.find(
+        (variation) => variation.id === item.variationId
+      )
+
+      if (!variation) {
+        throw new Error('Missing product variation')
+      }
+
+      const totalWeight = item.quantity * variation.weight
+
+      return {
+        greenCoffee: greenCoffee.id,
+        greenCoffeeName: greenCoffee.name,
+        roastedCoffee: roastedCoffee.id,
+        roastedCoffeeName: roastedCoffee.name,
+        totalWeight,
+        orderId: item.orderId,
+      }
+    })
+
   const startingValues = {
     greenCoffee: Object.values(GreenCoffeeMap).reduce((memo, value) => {
       return { ...memo, [value.id]: { name: value.name, weight: 0 } }
@@ -93,7 +62,7 @@ export const reduceLineItemsForRoasting = (
     orders: [],
   }
 
-  return roastableLineItems.reduce((memo, item) => {
+  const preliminaryRoastingData = roastableLineItems.reduce((memo, item) => {
     memo = {
       greenCoffee: {
         ...memo.greenCoffee,
@@ -115,12 +84,10 @@ export const reduceLineItemsForRoasting = (
     }
     return memo
   }, startingValues)
-}
 
-export const mapRoastingBatches = (roasting: Roasting): Roasting => {
   return {
-    greenCoffee: roasting.greenCoffee,
-    roastedCoffee: Object.entries(roasting.roastedCoffee).reduce(
+    greenCoffee: preliminaryRoastingData.greenCoffee,
+    roastedCoffee: Object.entries(preliminaryRoastingData.roastedCoffee).reduce(
       (memo, [key, item]) => {
         return {
           ...memo,
@@ -132,7 +99,7 @@ export const mapRoastingBatches = (roasting: Roasting): Roasting => {
       },
       {}
     ),
-    totalWeight: roasting.totalWeight,
-    orders: _.uniq(roasting.orders),
+    totalWeight: preliminaryRoastingData.totalWeight,
+    orders: _.uniq(preliminaryRoastingData.orders),
   }
 }

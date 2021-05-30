@@ -1,3 +1,5 @@
+import { processOrdersToBatches } from './domain/roasting'
+import { OrderModel } from './models/order'
 import express from 'express'
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
@@ -39,6 +41,12 @@ mongoose
       const dataSync = buildDataSync(woocommerceClient)
       await dataSync.syncProducts()
       await dataSync.startOrderSyncJob()
+
+      const orders = await OrderModel.find()
+
+      const roasting = await processOrdersToBatches(orders)
+
+      Logger.debug(roasting)
     })
   })
 

@@ -5,7 +5,7 @@ import { WooCommerceClient } from './woocommerce'
 import { OrderModel } from '../models/order'
 import { Product } from '../../shared/types/product'
 import { Order } from '../../shared/types/order'
-import { RoastedCoffeeProductMap } from '../domain/roasting_settings'
+import { RoastedCoffeeProductMap } from '../domain/roasting-settings'
 
 const ORDER_SYNC_INTERVAL_MS = 300000
 
