@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 
-export const ProductQuery = gql`
+export const ProductListQuery = gql`
   query GetProducts {
     products {
       id
@@ -8,7 +8,6 @@ export const ProductQuery = gql`
       description
       shortDescription
       dateModified
-      price
       categories {
         id
         name
@@ -22,21 +21,65 @@ export const ProductQuery = gql`
   }
 `
 
-export const CategoryQuery = gql`
-  query GetCategories {
-    categories {
-      id
-      name
-    }
-  }
-`
+export interface ProductListItem {
+  id: number
+  name: string
+  description: string
+  shortDescription: string
+  dateModified: string
+  categories: {
+    id: number
+    name: string
+  }[]
+  images: {
+    id: number
+    src: string
+    name: string
+  }[]
+}
 
-export const OrdersQuery = gql`
+export const OrdersListQuery = gql`
   query GetOrders {
     orders {
       id
       number
       status
+      dateCreated
+      lineItems {
+        name
+        quantity
+        variationId
+        product {
+          categories {
+            name
+          }
+          variations {
+            id
+            weight
+          }
+        }
+      }
     }
   }
 `
+
+export interface OrderListItem {
+  id: number
+  number: number
+  status: string
+  dateCreated: string
+  lineItems: {
+    name: string
+    quantity: number
+    variationId: number
+    product: {
+      categories: {
+        name: string
+      }[]
+      variations: {
+        id: number
+        weight: number
+      }[]
+    }
+  }[]
+}

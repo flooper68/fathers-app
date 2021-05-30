@@ -46,10 +46,7 @@ export const Navigation = () => {
         <Menu.Item key="2" icon={<UnorderedListOutlined />}>
           <Link to="products">Produkty</Link>
         </Menu.Item>
-        <Menu.Item key="3" icon={<FolderOutlined />}>
-          <Link to="categories">Kategorie</Link>
-        </Menu.Item>
-        <Menu.Item key="4" icon={<WalletOutlined />}>
+        <Menu.Item key="3" icon={<WalletOutlined />}>
           <Link to="orders">Objednávky</Link>
         </Menu.Item>
       </Menu>

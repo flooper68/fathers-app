@@ -3,9 +3,8 @@ import Meta from 'antd/lib/card/Meta'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
-import { Logger } from '../../shared/logger'
-import { Product } from '../../shared/types/product'
 import { useApiClient } from '../api/api-client'
+import { ProductListItem } from '../api/graphql-queries'
 
 const columns = [
   {
@@ -17,12 +16,6 @@ const columns = [
     title: 'Název',
     dataIndex: 'name',
     key: 'name',
-  },
-  {
-    title: 'Cena',
-    dataIndex: 'price',
-    key: 'price',
-    render: (price: string) => <span>{`${price} Kč`}</span>,
   },
   {
     title: 'Kategorie',
@@ -41,18 +34,11 @@ const columns = [
 ]
 
 export const Products = () => {
-  const [rows, setRows] = useState<any>([])
+  const [rows, setRows] = useState<ProductListItem[]>([])
   const [modalOpened, setModalOpened] = useState(false)
-  const [modalContext, setModalContext] = useState<Product | null>(null)
+  const [modalContext, setModalContext] = useState<ProductListItem | null>(null)
 
   const apiClient = useApiClient()
-
-  useEffect(() => {
-    apiClient.getProducts().then((result) => {
-      Logger.debug(result.data.products)
-      setRows(result.data.products)
-    })
-  }, [apiClient])
 
   const handleOk = () => {
     setModalOpened(false)
@@ -61,6 +47,12 @@ export const Products = () => {
   const handleCancel = () => {
     setModalOpened(false)
   }
+
+  useEffect(() => {
+    apiClient.getProducts().then((result) => {
+      setRows(result.data.products)
+    })
+  }, [apiClient])
 
   return (
     <div
@@ -75,7 +67,7 @@ export const Products = () => {
       }}
     >
       <Table
-        onRow={(record: Product) => {
+        onRow={(record: ProductListItem) => {
           return {
             onClick: () => {
               setModalOpened(true)
@@ -121,9 +113,6 @@ export const Products = () => {
           </Descriptions.Item>
           <Descriptions.Item label="Změněno">
             {modalContext?.dateModified}
-          </Descriptions.Item>
-          <Descriptions.Item label="Cena">
-            {modalContext?.price}
           </Descriptions.Item>
           <Descriptions.Item label="Kategorie">
             {modalContext?.categories.map((item) => item.name).join(', ')}

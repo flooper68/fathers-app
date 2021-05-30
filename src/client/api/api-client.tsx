@@ -2,54 +2,38 @@ import { ApolloClient, NormalizedCacheObject } from '@apollo/client'
 import React, { useCallback, useMemo } from 'react'
 import { useContext } from 'react'
 
-import { CategoryQuery, OrdersQuery, ProductQuery } from './graphql-queries'
+import {
+  OrdersListQuery,
+  ProductListItem,
+  ProductListQuery,
+  OrderListItem,
+} from './graphql-queries'
 
 export const useBuildApiClient = (
   client: ApolloClient<NormalizedCacheObject>
 ) => {
   const getProducts = useCallback(() => {
     return client.query<{
-      products: {
-        id: number
-        name: string
-        description: string
-        shortDescription: string
-        dateModified: string
-        price: number
-        categories: {
-          id: number
-          name: string
-        }[]
-        images: {
-          id: number
-          src: string
-          name: string
-        }
-      }
+      products: ProductListItem[]
     }>({
-      query: ProductQuery,
-    })
-  }, [client])
-
-  const getCategories = useCallback(() => {
-    return client.query({
-      query: CategoryQuery,
+      query: ProductListQuery,
     })
   }, [client])
 
   const getOrders = useCallback(() => {
-    return client.query({
-      query: OrdersQuery,
+    return client.query<{
+      orders: OrderListItem[]
+    }>({
+      query: OrdersListQuery,
     })
   }, [client])
 
   return useMemo(
     () => ({
       getProducts,
-      getCategories,
       getOrders,
     }),
-    [getProducts, getCategories, getOrders]
+    [getProducts, getOrders]
   )
 }
 

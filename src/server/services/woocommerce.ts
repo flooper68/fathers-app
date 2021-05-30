@@ -1,17 +1,14 @@
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api'
 import { config } from 'dotenv'
-
-import { Product } from './../../shared/types/product'
-import { Order, WooCommerceOrderResponse } from './../../shared/types/order'
-import { Category } from './../../shared/types/category'
-import { Logger } from '../../shared/logger'
 import moment from 'moment'
+import query from 'query-string'
+
+import { Logger } from '../../shared/logger'
+import { WooCommerceOrderResponse } from '../../shared/types/order'
 import {
-  LineItem,
-  LineItemWooCommerceResponse,
-} from '../../shared/types/line-item'
-import { WooCommerceCategoryResponse } from '../types/category'
-import { WooCommerceProductResponse } from '../types/product'
+  WooCommerceProductResponse,
+  WooCommerceProductVariationResponse,
+} from '../../shared/types/product'
 
 config()
 
@@ -24,140 +21,39 @@ interface WooCommerceApi {
 }
 
 const getCounts = (headers: { [key: string]: string }) => {
-  const totalCount = headers['x-wp-total']
-  const pagesCount = headers['x-wp-totalpages']
+  const totalCount = parseInt(headers['x-wp-total'])
+  const pagesCount = parseInt(headers['x-wp-totalpages'])
 
   return { totalCount, pagesCount }
 }
 
-const mapProduct = (item: WooCommerceProductResponse): Product => ({
-  id: item.id,
-  name: item.name,
-  dateModified: item.date_modified,
-  slug: item.slug,
-  description: item.description,
-  shortDescription: item.short_description,
-  price: parseInt(item.price, 10),
-  wight: item.weight,
-  categories: item.categories.map((category) => ({
-    id: category.id,
-    name: category.name,
-  })),
-  images: item.images.map((image) => ({
-    id: image.id,
-    name: image.name,
-    src: image.src,
-  })),
-})
-
-const mapLineItem = (order: number) => (
-  item: LineItemWooCommerceResponse
-): LineItem => ({
-  id: item.id,
-  name: item.name,
-  product_id: item.product_id,
-  quantity: item.quantity,
-  price: item.price,
-  total: item.total,
-  order,
-})
-
-const mapOrder = (item: WooCommerceOrderResponse): Order => ({
-  number: item.number,
-  id: item.id,
-  date_modified: item.date_modified,
-  date_created: item.date_created,
-  status: item.status,
-  currency: item.currency,
-  line_items: item.line_items.map(mapLineItem(item.id)),
-})
-
-const mapCategory = (item: WooCommerceCategoryResponse): Category => ({
-  id: item.id,
-  name: item.name,
-  description: item.description,
-})
-
-const buildGetAllItems = <Entity, EntityWooCommerceResponse>(
+const buildGetAllItems = <EntityWooCommerceResponse>(
   client: WooCommerceApi,
-  url: string,
-  mappingFunction: (data: EntityWooCommerceResponse) => Entity
-) => async () => {
-  let allData: Entity[] = []
+  url: string
+) => async (queryParams?: Record<string, string>) => {
+  let allData: EntityWooCommerceResponse[] = []
 
   Logger.debug('Fetching initial page.')
   const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
-    `${url}?page=1&per_page=${ITEMS_PER_PAGE}`
-  )
-
-  const { totalCount, pagesCount } = getCounts(headers)
-  Logger.debug(`Total pages count ${pagesCount}`)
-
-  allData = [...allData, ...data.map(mappingFunction)]
-  let page = 2
-  while (page <= parseInt(pagesCount, 10)) {
-    Logger.debug(`Fetching page ${page} of ${pagesCount}`)
-    const { data } = await client.get<EntityWooCommerceResponse[]>(
-      `${url}?page=${page}&per_page=${ITEMS_PER_PAGE}`
-    )
-    allData = [...allData, ...data.map(mappingFunction)]
-    page++
-  }
-
-  return { rows: allData, totalCount, pagesCount }
-}
-
-const buildGetAllItemsAfterDate = <Entity, EntityWooCommerceResponse>(
-  client: WooCommerceApi,
-  url: string,
-  mappingFunction: (data: EntityWooCommerceResponse) => Entity
-) => async (afterDate: string) => {
-  let allData: Entity[] = []
-
-  Logger.debug('Fetching initial page.')
-  const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
-    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&after=${afterDate}`
+    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&${query.stringify(queryParams)}`
   )
   const { totalCount, pagesCount } = getCounts(headers)
   Logger.debug(`Total pages count ${pagesCount}`)
 
-  allData = [...allData, ...data.map(mappingFunction)]
+  allData = [...allData, ...data]
   let page = 2
-  while (page <= parseInt(pagesCount, 10)) {
+  while (page <= pagesCount) {
     Logger.debug(`Fetching page ${page} of ${pagesCount}`)
     const { data } = await client.get<EntityWooCommerceResponse[]>(
-      `${url}?page=${page}&per_page=${ITEMS_PER_PAGE}&after=${afterDate}`
+      `${url}?page=${page}&per_page=${ITEMS_PER_PAGE}&${query.stringify(
+        queryParams
+      )}`
     )
-    allData = [...allData, ...data.map(mappingFunction)]
+    allData = [...allData, ...data]
     page++
   }
 
   return { rows: allData, totalCount, pagesCount }
-}
-
-const buildGetItemsPage = <Entity, EntityWooCommerceResponse>(
-  client: WooCommerceApi,
-  url: string,
-  mappingFunction: (data: EntityWooCommerceResponse) => Entity
-) => async (page: number) => {
-  const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
-    `${url}?page=${page}&per_page=${ITEMS_PER_PAGE}`
-  )
-
-  const { totalCount, pagesCount } = getCounts(headers)
-
-  return { rows: data.map(mappingFunction), totalCount, pagesCount }
-}
-
-const buildGetItem = <Entity, EntityWooCommerceResponse>(
-  client: WooCommerceApi,
-  url: string,
-  mappingFunction: (data: EntityWooCommerceResponse) => Entity
-) => async (id: number) => {
-  const { data } = await client.get<EntityWooCommerceResponse>(`${url}/${id}`)
-
-  console.log(data)
-  return mappingFunction(data)
 }
 
 export const buildWooCommerceClient = async () => {
@@ -177,28 +73,22 @@ export const buildWooCommerceClient = async () => {
   }
 
   return {
-    getProduct: buildGetItem(client, 'products', mapProduct),
-    getProducts: buildGetItemsPage(client, 'products', mapProduct),
-    getAllProducts: buildGetAllItems(client, 'products', mapProduct),
-    getOrder: buildGetItem(client, 'orders', mapOrder),
-    getOrders: buildGetItemsPage(client, 'orders', mapOrder),
-    getAllOrdersAfterDate: buildGetAllItemsAfterDate(
+    getAllProducts: buildGetAllItems<WooCommerceProductResponse>(
       client,
-      'orders',
-      mapOrder
+      'products'
     ),
-    getAllOrdersFromThisWeek: () =>
-      buildGetAllItemsAfterDate(
+    getAllProductVariations: (id: number) =>
+      buildGetAllItems<WooCommerceProductVariationResponse>(
         client,
-        'orders',
-        mapOrder
-      )(moment().startOf('week').toISOString()),
-    getCategory: buildGetItem(client, 'products/categories', mapCategory),
-    getAllCategories: buildGetAllItems(
-      client,
-      'products/categories',
-      mapCategory
-    ),
+        `products/${id}/variations`
+      )(),
+    getAllOrdersAfterDate: (after?: string) =>
+      buildGetAllItems<WooCommerceOrderResponse>(client, 'orders')({ after }),
+    getAllOrdersFromThisWeek: () =>
+      buildGetAllItems<WooCommerceOrderResponse>(
+        client,
+        'orders'
+      )({ after: moment().startOf('week').toISOString() }),
   }
 }
 
