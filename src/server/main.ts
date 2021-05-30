@@ -1,4 +1,3 @@
-import { processOrdersToBatches } from './domain/roasting'
 import { OrderModel } from './models/order'
 import express from 'express'
 import mongoose from 'mongoose'
@@ -10,6 +9,10 @@ import { buildWooCommerceClient } from './services/woocommerce'
 import { buildDataSync } from './services/data-sync'
 import { appSchema } from './api/schema/schema'
 import { appResolvers } from './api/resolvers/resolver'
+import {
+  getNextPlannedRoasting,
+  processOrdersToBatches,
+} from './domain/roasting'
 
 config()
 
@@ -46,7 +49,9 @@ mongoose
 
       const roasting = await processOrdersToBatches(orders)
 
-      Logger.debug(roasting)
+      const plannedRoasting = await getNextPlannedRoasting()
+      await plannedRoasting.updateOne(roasting)
+      Logger.debug(plannedRoasting)
     })
   })
 

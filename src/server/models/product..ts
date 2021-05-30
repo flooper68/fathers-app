@@ -1,4 +1,4 @@
-import { Schema, model, Model } from 'mongoose'
+import { Schema, model } from 'mongoose'
 
 import { Product } from '../../shared/types/product'
 import { DocumentWithSchemaVersion } from './../types/general'
@@ -9,7 +9,7 @@ interface ProductDocument
   extends Omit<Product, 'id'>,
     DocumentWithSchemaVersion {}
 
-const productSchema: Schema<ProductDocument> = new Schema({
+const productSchema = new Schema<ProductDocument>({
   id: { type: Number, required: true },
   schemaVersion: {
     type: Number,
@@ -42,7 +42,4 @@ const productSchema: Schema<ProductDocument> = new Schema({
   roastedCoffeeCategoryId: { type: String },
 })
 
-export const ProductModel: Model<ProductDocument> = model<ProductDocument>(
-  'Product',
-  productSchema
-)
+export const ProductModel = model<ProductDocument>('Product', productSchema)

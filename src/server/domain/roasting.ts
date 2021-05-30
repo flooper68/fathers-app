@@ -7,11 +7,21 @@ import {
   BATCH_SIZE,
 } from './roasting-settings'
 import { OrderDocument } from './../models/order'
+import {
+  RoastingGreenCoffee,
+  RoastingRoastedCoffee,
+  RoastingStatus,
+} from '../../shared/types/roasting'
+import { RoastedCoffee } from '../../shared/types/roasted-coffee'
+import { GreenCoffee } from './../../shared/types/green-coffee'
+import { RoastingModel } from './../models/roasting'
 
 export const processOrdersToBatches = async (orders: OrderDocument[]) => {
-  const lineItems = orders.flatMap((order) =>
-    order.toObject().lineItems.map((item) => ({ ...item, orderId: order.id }))
-  )
+  const lineItems = orders
+    .map((order) =>
+      order.toObject().lineItems.map((item) => ({ ...item, orderId: order.id }))
+    )
+    .flat()
 
   const lineItemsWithProducts = await Promise.all(
     lineItems.map(async (lineItem) => {
@@ -26,10 +36,11 @@ export const processOrdersToBatches = async (orders: OrderDocument[]) => {
   const roastableLineItems = lineItemsWithProducts
     .filter((item) => item.product.roastedCoffeeCategoryId)
     .map((item) => {
-      const roastedCoffee =
+      const roastedCoffee: RoastedCoffee =
         RoastedCoffeeMap[item.product.roastedCoffeeCategoryId]
 
-      const greenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
+      const greenCoffee: GreenCoffee =
+        GreenCoffeeMap[roastedCoffee.greenCoffeeId]
 
       const variation = item.product.variations.find(
         (variation) => variation.id === item.variationId
@@ -52,17 +63,35 @@ export const processOrdersToBatches = async (orders: OrderDocument[]) => {
     })
 
   const startingValues = {
-    greenCoffee: Object.values(GreenCoffeeMap).reduce((memo, value) => {
-      return { ...memo, [value.id]: { name: value.name, weight: 0 } }
-    }, []),
-    roastedCoffee: Object.values(RoastedCoffeeMap).reduce((memo, value) => {
-      return { ...memo, [value.id]: { name: value.name, weight: 0 } }
+    greenCoffee: Object.values(GreenCoffeeMap).reduce<
+      Record<number, RoastingGreenCoffee>
+    >((memo, value) => {
+      return {
+        ...memo,
+        [value.id]: { name: value.name, weight: 0, id: value.id },
+      }
+    }, {}),
+    roastedCoffee: Object.values(RoastedCoffeeMap).reduce<
+      Record<number, RoastingRoastedCoffee>
+    >((memo, value) => {
+      return {
+        ...memo,
+        [value.id]: {
+          name: value.name,
+          weight: 0,
+          id: value.id,
+          numberOfBatches: 0,
+          finishedBatches: 0,
+        },
+      }
     }, []),
     totalWeight: 0,
-    orders: [],
+    orders: [] as number[],
   }
 
-  const preliminaryRoastingData = roastableLineItems.reduce((memo, item) => {
+  const preliminaryRoastingData = roastableLineItems.reduce<
+    typeof startingValues
+  >((memo, item) => {
     memo = {
       greenCoffee: {
         ...memo.greenCoffee,
@@ -86,20 +115,35 @@ export const processOrdersToBatches = async (orders: OrderDocument[]) => {
   }, startingValues)
 
   return {
-    greenCoffee: preliminaryRoastingData.greenCoffee,
-    roastedCoffee: Object.entries(preliminaryRoastingData.roastedCoffee).reduce(
-      (memo, [key, item]) => {
+    greenCoffee: Object.values(preliminaryRoastingData.greenCoffee),
+    roastedCoffee: Object.values(preliminaryRoastingData.roastedCoffee).map(
+      (item) => {
         return {
-          ...memo,
-          [key]: {
-            ...item,
-            numberOfBatches: Math.ceil(item.weight / BATCH_SIZE),
-          },
+          ...item,
+          numberOfBatches: Math.ceil(item.weight / BATCH_SIZE),
         }
-      },
-      {}
+      }
     ),
     totalWeight: preliminaryRoastingData.totalWeight,
     orders: _.uniq(preliminaryRoastingData.orders),
   }
+}
+
+export const getNextPlannedRoasting = async () => {
+  const roastings = await RoastingModel.find({
+    status: RoastingStatus.PLANNED,
+  })
+
+  if (roastings.length > 1) {
+    throw new Error('There is more than one planned roasting')
+  }
+
+  let nextRoasting = roastings[0]
+
+  if (!nextRoasting) {
+    nextRoasting = new RoastingModel()
+    await nextRoasting.save()
+  }
+
+  return nextRoasting
 }
