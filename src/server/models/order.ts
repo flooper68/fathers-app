@@ -3,7 +3,9 @@ import moongose, { Schema } from 'mongoose'
 import { Order } from '../../shared/types/order'
 import { DocumentWithSchemaVersion } from './../types/general'
 
-interface OrderDocument extends Omit<Order, 'id'>, DocumentWithSchemaVersion {}
+export interface OrderDocument
+  extends Omit<Order, 'id'>,
+    DocumentWithSchemaVersion {}
 
 const orderSchema = new Schema<OrderDocument>({
   id: { type: Number, required: true },

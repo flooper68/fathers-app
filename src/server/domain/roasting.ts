@@ -1,99 +1,97 @@
 import _ from 'lodash'
 
-import { Logger } from '../../shared/logger'
-import { OrderLineItem } from '../../shared/types/order'
 import { ProductModel } from '../models/product.'
 import {
-  RoastedCoffeeProductMap,
   RoastedCoffeeMap,
   GreenCoffeeMap,
   BATCH_SIZE,
-} from '../settings'
+} from './roasting-settings'
+import { OrderDocument } from './../models/order'
+import {
+  RoastingGreenCoffee,
+  RoastingRoastedCoffee,
+  RoastingStatus,
+} from '../../shared/types/roasting'
+import { RoastedCoffee } from '../../shared/types/roasted-coffee'
+import { GreenCoffee } from './../../shared/types/green-coffee'
+import { RoastingModel } from './../models/roasting'
 
-interface RoastableLineItem {
-  greenCoffee: number
-  greenCoffeeName: string
-  roastedCoffee: number
-  roastedCoffeeName: string
-  totalWeight: number
-  orderId: number
-}
+export const processOrdersToBatches = async (orders: OrderDocument[]) => {
+  const lineItems = orders
+    .map((order) =>
+      order.toObject().lineItems.map((item) => ({ ...item, orderId: order.id }))
+    )
+    .flat()
 
-interface Roasting {
-  greenCoffee: Record<
-    number,
-    {
-      name: string
-      weight: number
-    }
-  >
-  roastedCoffee: Record<
-    number,
-    {
-      name: string
-      weight: number
-      numberOfBatches?: number
-    }
-  >
+  const lineItemsWithProducts = await Promise.all(
+    lineItems.map(async (lineItem) => {
+      const product = await ProductModel.findOne({
+        id: lineItem.productId,
+      })
 
-  totalWeight: number
-  orders: number[]
-}
-
-export const isLineItemRoastable = (lineItem: OrderLineItem) => {
-  if (!RoastedCoffeeProductMap[lineItem.productId]) {
-    Logger.debug(`Item not roastable`, lineItem)
-  }
-
-  return !!RoastedCoffeeProductMap[lineItem.productId]
-}
-
-export const mapLineItemForRoasting = async (
-  lineItem: OrderLineItem & { orderId }
-): Promise<RoastableLineItem> => {
-  const product = await ProductModel.findOne({
-    id: lineItem.productId,
-  })
-  const roastedCoffee =
-    RoastedCoffeeMap[RoastedCoffeeProductMap[lineItem.productId]]
-
-  const greenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
-
-  const variation = product.variations.find(
-    (variation) => variation.id === lineItem.variationId
+      return { ...lineItem, product }
+    })
   )
 
-  if (!variation) {
-    throw new Error('Missing product variation')
-  }
+  const roastableLineItems = lineItemsWithProducts
+    .filter((item) => item.product.roastedCoffeeCategoryId)
+    .map((item) => {
+      const roastedCoffee: RoastedCoffee =
+        RoastedCoffeeMap[item.product.roastedCoffeeCategoryId]
 
-  const totalWeight = lineItem.quantity * variation.weight
+      const greenCoffee: GreenCoffee =
+        GreenCoffeeMap[roastedCoffee.greenCoffeeId]
 
-  return {
-    greenCoffee: greenCoffee.id,
-    greenCoffeeName: greenCoffee.name,
-    roastedCoffee: roastedCoffee.id,
-    roastedCoffeeName: roastedCoffee.name,
-    totalWeight,
-    orderId: lineItem.orderId,
-  }
-}
+      const variation = item.product.variations.find(
+        (variation) => variation.id === item.variationId
+      )
 
-export const reduceLineItemsForRoasting = (
-  roastableLineItems: RoastableLineItem[]
-): Roasting => {
+      if (!variation) {
+        throw new Error('Missing product variation')
+      }
+
+      const totalWeight = item.quantity * variation.weight
+
+      return {
+        greenCoffee: greenCoffee.id,
+        greenCoffeeName: greenCoffee.name,
+        roastedCoffee: roastedCoffee.id,
+        roastedCoffeeName: roastedCoffee.name,
+        totalWeight,
+        orderId: item.orderId,
+      }
+    })
+
   const startingValues = {
-    greenCoffee: Object.values(GreenCoffeeMap).reduce((memo, value) => {
-      return { ...memo, [value.id]: { name: value.name, weight: 0 } }
-    }, []),
-    roastedCoffee: Object.values(RoastedCoffeeMap).reduce((memo, value) => {
-      return { ...memo, [value.id]: { name: value.name, weight: 0 } }
+    greenCoffee: Object.values(GreenCoffeeMap).reduce<
+      Record<number, RoastingGreenCoffee>
+    >((memo, value) => {
+      return {
+        ...memo,
+        [value.id]: { name: value.name, weight: 0, id: value.id },
+      }
+    }, {}),
+    roastedCoffee: Object.values(RoastedCoffeeMap).reduce<
+      Record<number, RoastingRoastedCoffee>
+    >((memo, value) => {
+      return {
+        ...memo,
+        [value.id]: {
+          name: value.name,
+          weight: 0,
+          id: value.id,
+          numberOfBatches: 0,
+          finishedBatches: 0,
+        },
+      }
     }, []),
     totalWeight: 0,
-    orders: [],
+    orders: [] as number[],
   }
 
-  return roastableLineItems.reduce((memo, item) => {
+  const preliminaryRoastingData = roastableLineItems.reduce<
+    typeof startingValues
+  >((memo, item) => {
     memo = {
       greenCoffee: {
         ...memo.greenCoffee,
@@ -115,24 +113,37 @@ export const reduceLineItemsForRoasting = (
     }
     return memo
   }, startingValues)
+
+  return {
+    greenCoffee: Object.values(preliminaryRoastingData.greenCoffee),
+    roastedCoffee: Object.values(preliminaryRoastingData.roastedCoffee).map(
+      (item) => {
+        return {
+          ...item,
+          numberOfBatches: Math.ceil(item.weight / BATCH_SIZE),
+        }
+      }
+    ),
+    totalWeight: preliminaryRoastingData.totalWeight,
+    orders: _.uniq(preliminaryRoastingData.orders),
+  }
 }
 
-export const mapRoastingBatches = (roasting: Roasting): Roasting => {
-  return {
-    greenCoffee: roasting.greenCoffee,
-    roastedCoffee: Object.entries(roasting.roastedCoffee).reduce(
-      (memo, [key, item]) => {
-        return {
-          ...memo,
-          [key]: {
-            ...item,
-            numberOfBatches: Math.ceil(item.weight / BATCH_SIZE),
-          },
-        }
-      },
-      {}
-    ),
-    totalWeight: roasting.totalWeight,
-    orders: _.uniq(roasting.orders),
+export const getNextPlannedRoasting = async () => {
+  const roastings = await RoastingModel.find({
+    status: RoastingStatus.PLANNED,
+  })
+
+  if (roastings.length > 1) {
+    throw new Error('There is more than one planned roasting')
   }
+
+  let nextRoasting = roastings[0]
+
+  if (!nextRoasting) {
+    nextRoasting = new RoastingModel()
+    await nextRoasting.save()
+  }
+
+  return nextRoasting
 }

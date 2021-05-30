@@ -1,10 +1,7 @@
-export const GreenCoffeeMap: Record<
-  number,
-  {
-    id: number
-    name: string
-  }
-> = {
+import { GreenCoffee } from './../../shared/types/green-coffee'
+import { RoastedCoffee } from './../../shared/types/roasted-coffee'
+
+export const GreenCoffeeMap: Record<number, GreenCoffee> = {
   [1]: { id: 1, name: 'Kolumbie - La Colombia' },
   [2]: { id: 2, name: 'Peru - El Paraiso' },
   [3]: { id: 3, name: 'Brazílie - PAUBRASIL' },
@@ -15,14 +12,7 @@ export const GreenCoffeeMap: Record<
 
 export const BATCH_SIZE = 2
 
-export const RoastedCoffeeMap: Record<
-  number,
-  {
-    id: number
-    name: string
-    greenCoffeeId: number
-  }
-> = {
+export const RoastedCoffeeMap: Record<number, RoastedCoffee> = {
   [1]: { id: 1, name: 'Kolumbie - La Colombia Filtr', greenCoffeeId: 1 },
   [2]: { id: 2, name: 'Kolumbie - La Colombia Espresso', greenCoffeeId: 1 },
   [3]: { id: 3, name: 'Peru - El Paraiso Filtr', greenCoffeeId: 2 },

@@ -1,9 +1,11 @@
+import { WooCommerceProductResponse } from './../../shared/types/product'
 import { Logger } from '../../shared/logger'
 import { ProductModel } from '../models/product.'
 import { WooCommerceClient } from './woocommerce'
 import { OrderModel } from '../models/order'
 import { Product } from '../../shared/types/product'
 import { Order } from '../../shared/types/order'
+import { RoastedCoffeeProductMap } from '../domain/roasting-settings'
 
 const ORDER_SYNC_INTERVAL_MS = 300000
 
@@ -17,43 +19,46 @@ export const buildDataSync = (client: WooCommerceClient) => {
 
     const enrichedProducts: Product[] = []
 
-    try {
-      for (const [index, item] of products.rows.entries()) {
-        const variations = await client.getAllProductVariations(item.id)
-        Logger.debug(
-          `Fetching ${variations.totalCount} product variations for product ${item.name}`
-        )
+    const handleProductVariations = async (
+      item: WooCommerceProductResponse
+    ) => {
+      Logger.debug(`Fetching product variations for product ${item.name}`)
+      const variations = await client.getAllProductVariations(item.id)
 
-        enrichedProducts.push({
-          id: item.id,
-          name: item.name,
-          dateModified: item.date_modified,
-          description: item.description,
-          shortDescription: item.short_description,
-          images: item.images,
-          categories: item.categories.map((category) => {
-            return { id: category.id, name: category.name }
-          }),
-          variations: variations.rows.map((variation) => {
-            return {
-              id: variation.id,
-              weight: isNaN(parseFloat(variation.weight))
-                ? null
-                : parseFloat(variation.weight),
-            }
-          }),
-        })
+      Logger.debug(`Received ${variations.totalCount} product variations`)
 
-        Logger.debug(
-          `Completed ${index + 1} of ${products.totalCount} products, ${(
-            ((index + 1) / products.totalCount) *
-            100
-          ).toFixed(2)} %, working for ${Date.now() - start} ms`
-        )
+      const roastedCoffeeCategoryId = RoastedCoffeeProductMap[item.id]
+
+      if (!roastedCoffeeCategoryId) {
+        Logger.debug(`Product ${item.name} is not setup for roasting.`)
       }
-    } catch (e) {
-      Logger.error(`Error downloading product variations from WooCommerce`, e)
+
+      enrichedProducts.push({
+        id: item.id,
+        name: item.name,
+        dateModified: item.date_modified,
+        description: item.description,
+        shortDescription: item.short_description,
+        roastedCoffeeCategoryId,
+        images: item.images,
+        categories: item.categories.map((category) => {
+          return { id: category.id, name: category.name }
+        }),
+        variations: variations.rows.map((variation) => {
+          return {
+            id: variation.id,
+            weight: isNaN(parseFloat(variation.weight))
+              ? null
+              : parseFloat(variation.weight),
+          }
+        }),
+      })
     }
+
+    await products.rows.reduce(async (memo, item) => {
+      await memo
+      return handleProductVariations(item)
+    }, Promise.resolve(null))
 
     Logger.debug('Finished downloading data')
 
@@ -135,6 +140,12 @@ export const buildDataSync = (client: WooCommerceClient) => {
   }
 
   const startOrderSyncJob = () => {
+    Logger.debug(
+      `Starting Order Sync Job, sync interval is ${
+        ORDER_SYNC_INTERVAL_MS / 1000
+      } s`
+    )
+
     const sync = async () => {
       await syncThisWeekOrders()
 
