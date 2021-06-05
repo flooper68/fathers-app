@@ -9,6 +9,8 @@ import {
   WooCommerceProductResponse,
   WooCommerceProductVariationResponse,
 } from '../../shared/types/product'
+import { OrderModel } from '../models/order'
+import { OrderStatus } from './../../shared/types/order'
 
 config()
 
@@ -30,12 +32,14 @@ const getCounts = (headers: { [key: string]: string }) => {
 const buildGetAllItems = <EntityWooCommerceResponse>(
   client: WooCommerceApi,
   url: string
-) => async (queryParams?: Record<string, string>) => {
+) => async (queryParams?: Record<string, string | number | number[]>) => {
   let allData: EntityWooCommerceResponse[] = []
 
   Logger.debug('Fetching initial page.')
   const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
-    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&${query.stringify(queryParams)}`
+    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&${query.stringify(queryParams, {
+      arrayFormat: 'comma',
+    })}`
   )
   const { totalCount, pagesCount } = getCounts(headers)
   Logger.debug(`Total pages count ${pagesCount}`)
@@ -82,13 +86,35 @@ export const buildWooCommerceClient = async () => {
         client,
         `products/${id}/variations`
       )(),
-    getAllOrdersAfterDate: (after?: string) =>
-      buildGetAllItems<WooCommerceOrderResponse>(client, 'orders')({ after }),
+    getAllOrdersAfterDate: (after?: string, include?: number[]) =>
+      buildGetAllItems<WooCommerceOrderResponse>(
+        client,
+        'orders'
+      )({ after, include }),
     getAllOrdersFromThisWeek: () =>
       buildGetAllItems<WooCommerceOrderResponse>(
         client,
         'orders'
       )({ after: moment().startOf('week').toISOString() }),
+    getNewOrders: async () => {
+      const lastSavedOrder = await OrderModel.findOne().sort({ id: -1 })
+      Logger.debug(
+        `Fetching new orders, last saved order ${lastSavedOrder.id}, created at ${lastSavedOrder.dateCreated}`
+      )
+      return buildGetAllItems<WooCommerceOrderResponse>(
+        client,
+        'orders'
+      )({ after: lastSavedOrder ? lastSavedOrder.dateCreated : undefined })
+    },
+    getUnresolvedOrders: async () => {
+      const unresolvedOrders = await OrderModel.find({
+        status: { $in: [OrderStatus.ON_HOLD] },
+      })
+      return await buildGetAllItems<WooCommerceOrderResponse>(
+        client,
+        'orders'
+      )({ include: unresolvedOrders.map((order) => order.id) })
+    },
   }
 }
 
