@@ -1,9 +1,20 @@
+export enum OrderStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  ON_HOLD = 'on-hold',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  REFUNDED = 'refunded',
+  FAILED = 'failed ',
+  TRASH = 'trash ',
+}
+
 export type WooCommerceOrderResponse = {
   id: number
   number: string
   date_created: string
   date_modified: string
-  status: string
+  status: OrderStatus
   currency: string
   line_items: {
     id: number
@@ -33,6 +44,6 @@ export interface Order {
   dateModified: string
   roastingId?: string
   roasted: boolean
-  status: string
+  status: OrderStatus
   lineItems: OrderLineItem[]
 }

@@ -2,12 +2,42 @@ import { GreenCoffee } from './../../shared/types/green-coffee'
 import { RoastedCoffee } from './../../shared/types/roasted-coffee'
 
 export const GreenCoffeeMap: Record<number, GreenCoffee> = {
-  [1]: { id: 1, name: 'Kolumbie - La Colombia' },
-  [2]: { id: 2, name: 'Peru - El Paraiso' },
-  [3]: { id: 3, name: 'Brazílie - PAUBRASIL' },
-  [4]: { id: 4, name: 'Kolumbie - Canas Gordas' },
-  [5]: { id: 5, name: 'Brazilie - Manga larga' },
-  [6]: { id: 6, name: 'Brazilie - Cafeina' },
+  [1]: {
+    id: 1,
+    name: 'Kolumbie - La Colombia',
+    batchWeight: 10,
+    roastingLossFactor: 0.85,
+  },
+  [2]: {
+    id: 2,
+    name: 'Peru - El Paraiso',
+    batchWeight: 10,
+    roastingLossFactor: 0.9,
+  },
+  [3]: {
+    id: 3,
+    name: 'Brazílie - PAUBRASIL',
+    batchWeight: 10,
+    roastingLossFactor: 0.9,
+  },
+  [4]: {
+    id: 4,
+    name: 'Kolumbie - Canas Gordas',
+    batchWeight: 10,
+    roastingLossFactor: 0.9,
+  },
+  [5]: {
+    id: 5,
+    name: 'Brazilie - Manga larga',
+    batchWeight: 10,
+    roastingLossFactor: 0.9,
+  },
+  [6]: {
+    id: 6,
+    name: 'Brazilie - Cafeina',
+    batchWeight: 10,
+    roastingLossFactor: 0.9,
+  },
 }
 
 export const BATCH_SIZE = 2

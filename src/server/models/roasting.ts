@@ -18,22 +18,25 @@ const roastingSchema = new Schema<RoastingDocument>({
   status: {
     type: String,
     enum: RoastingStatus,
-    default: RoastingStatus.PLANNED,
+    default: RoastingStatus.IN_PLANNING,
   },
   greenCoffee: [
     new Schema({
       id: { type: Number, required: true },
-      weight: { type: Number, required: true },
       name: { type: String, required: true },
+      batchWeight: { type: Number, required: true },
+      roastingLossFactor: { type: Number, required: true },
+      weight: { type: Number, required: true, default: 0 },
     }),
   ],
   roastedCoffee: [
     new Schema({
       id: { type: Number, required: true },
-      weight: { type: Number, required: true },
       name: { type: String, required: true },
-      numberOfBatches: { type: Number, required: true },
+      numberOfBatches: { type: Number, required: true, default: 0 },
       finishedBatches: { type: Number, required: true, default: 0 },
+      weight: { type: Number, required: true, default: 0 },
+      realYield: { type: Number, required: true, default: 0 },
     }),
   ],
   totalWeight: {
