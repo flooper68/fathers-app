@@ -38,7 +38,7 @@ mongoose
       const woocommerceClient = await buildWooCommerceClient()
       const dataSync = buildDataSync(woocommerceClient)
       // await dataSync.syncProducts()
-      // await dataSync.syncNewOrders()
+      await dataSync.syncNewOrders()
       // await dataSync.syncUnresolvedOrders()
       // await finishRoasting()
       // await closeRoastingPlanning()

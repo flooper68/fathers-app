@@ -18,9 +18,9 @@ const fetchVariationsAndMapProducts = async (
 
   Logger.info(`Received ${variations.totalCount} product variations`)
 
-  const roastedCoffeeCategoryId = RoastedCoffeeProductMap[item.id]
+  const roastedCoffeeId = RoastedCoffeeProductMap[item.id]
 
-  if (!roastedCoffeeCategoryId) {
+  if (!roastedCoffeeId) {
     Logger.info(`Product ${item.name} is not setup for roasting.`)
   }
 
@@ -30,7 +30,7 @@ const fetchVariationsAndMapProducts = async (
     dateModified: item.date_modified,
     description: item.description,
     shortDescription: item.short_description,
-    roastedCoffeeCategoryId,
+    roastedCoffeeId,
     images: item.images,
     categories: item.categories.map((category) => {
       return { id: category.id, name: category.name }

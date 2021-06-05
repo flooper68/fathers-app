@@ -1,13 +1,13 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model, Document } from 'mongoose'
 
-import { DocumentWithSchemaVersion } from './../types/general'
 import { Roasting, RoastingStatus } from './../../shared/types/roasting'
 
 const ROASTING_SCHEMA_VERSION = 1
 
-export interface RoastingDocument
-  extends Omit<Roasting, 'id'>,
-    DocumentWithSchemaVersion {}
+export interface RoastingDocument extends Omit<Roasting, 'id'>, Document {
+  id: string
+  schemaVersion: number
+}
 
 const roastingSchema = new Schema<RoastingDocument>({
   schemaVersion: {
