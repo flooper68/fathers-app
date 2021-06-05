@@ -126,13 +126,12 @@ const mapLineItemForRoasting = async (lineItem) => {
     )
   }
 
-  if (!product?.roastedCoffeeCategoryId) {
+  if (!product?.roastedCoffeeId) {
     Logger.info(`Product ${product.name} is not roastable, skipping`)
     return
   }
 
-  const roastedCoffee: RoastedCoffee =
-    RoastedCoffeeMap[product.roastedCoffeeCategoryId]
+  const roastedCoffee: RoastedCoffee = RoastedCoffeeMap[product.roastedCoffeeId]
 
   const greenCoffee: GreenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
 
@@ -180,13 +179,19 @@ const processOrderForRoasting = async (order: Order) => {
   Logger.debug(`Order line items roasting data aggregated`)
 
   const plannedRoasting = await getNextPlannedRoasting()
-  const roasting = plannedRoasting.toObject()
 
-  const updatedRoastingData = mergeRoastingData(roasting, orderRoastingData)
+  const updatedRoastingData = mergeRoastingData(
+    plannedRoasting.toObject(),
+    orderRoastingData
+  )
 
   await plannedRoasting.updateOne(updatedRoastingData)
+  await OrderModel.updateOne(
+    { id: order.id },
+    { roastingId: plannedRoasting.id }
+  )
 
-  Logger.info(`Updated roasting ${roasting.id} with order ${order.id}`)
+  Logger.info(`Updated roasting ${plannedRoasting.id} with order ${order.id}`)
 }
 
 export const buildSyncNewOrders = (client: WooCommerceClient) => async () => {

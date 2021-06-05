@@ -5,7 +5,7 @@ import { DocumentWithSchemaVersion } from './../types/general'
 
 const PRODUCT_SCHEMA_VERSION = 1
 
-interface ProductDocument
+export interface ProductDocument
   extends Omit<Product, 'id'>,
     DocumentWithSchemaVersion {}
 
@@ -39,7 +39,7 @@ const productSchema = new Schema<ProductDocument>({
       name: { type: String },
     }),
   ],
-  roastedCoffeeCategoryId: { type: String },
+  roastedCoffeeId: { type: Number },
 })
 
 export const ProductModel = model<ProductDocument>('Product', productSchema)

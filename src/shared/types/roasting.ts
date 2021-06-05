@@ -23,7 +23,7 @@ export interface RoastingRoastedCoffee {
 }
 
 export interface Roasting {
-  id: number
+  id: string
   schemaVersion: number
   status: RoastingStatus
   greenCoffee: RoastingGreenCoffee[]

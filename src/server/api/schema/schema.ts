@@ -2,6 +2,29 @@ import { buildSchema } from 'graphql'
 
 export const appSchema = buildSchema(`
 
+    type GreenCoffee {
+        id: Int!
+        name: String!
+        batchWeight: Float!
+        roastingLossFactor: Float!
+        roastedCoffees: [RoastedCoffee]!
+    }
+
+    type RoastedCoffee {
+        id: Int!
+        name: String!
+        greenCoffeeId: Int!
+        greenCoffee: GreenCoffee
+    }
+
+    type Roasting {
+        id: ID!
+        status: String!
+        totalWeight: Float!
+        orderIds: [Int]!
+        orders: [Order]!
+    }
+
     type ProductCategory {
         id: Int!
         name: String
@@ -27,7 +50,8 @@ export const appSchema = buildSchema(`
         images: [ProductImages]!
         categories: [ProductCategory]!
         variations: [ProductVariation]!
-        roastedCoffeeCategoryId: String
+        roastedCoffeeId: Int
+        roastedCoffee: RoastedCoffee
     }
 
     type LineItem {
@@ -51,9 +75,13 @@ export const appSchema = buildSchema(`
         lineItems: [LineItem]!
     }
 
+
     type RootQuery {
+        greenCoffees: [GreenCoffee]!
+        roastedCoffees: [RoastedCoffee]!
         orders: [Order]!
         products: [Product]!
+        roastings: [Roasting]!
     }
 
     schema {

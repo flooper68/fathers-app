@@ -36,5 +36,5 @@ export interface Product {
     id: number
     weight: number
   }[]
-  roastedCoffeeCategoryId?: string
+  roastedCoffeeId?: number
 }

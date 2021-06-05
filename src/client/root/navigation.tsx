@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { Menu } from 'antd'
 import {
   WalletOutlined,
-  FolderOutlined,
   UnorderedListOutlined,
   HomeOutlined,
 } from '@ant-design/icons'
