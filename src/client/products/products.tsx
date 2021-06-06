@@ -1,9 +1,11 @@
-import { Button, Card, Descriptions, Modal, Table } from 'antd'
+import { Button, Card, Descriptions, Modal, Spin, Table } from 'antd'
 import Meta from 'antd/lib/card/Meta'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { useApiClient } from '../api/api-client'
 import { ProductListItem } from '../api/graphql-queries'
+import { getProductSyncInProgress, syncActions } from '../root/sync'
+import { useAppDispatch, useAppSelector } from '../store'
 
 const columns = [
   {
@@ -37,14 +39,15 @@ const columns = [
   },
 ]
 
-export const Products = (props: { syncInProgress: boolean }) => {
-  const { syncInProgress } = props
+export const Products = () => {
+  const productSyncInProgress = useAppSelector(getProductSyncInProgress)
 
   const [rows, setRows] = useState<ProductListItem[]>([])
   const [modalOpened, setModalOpened] = useState(false)
   const [modalContext, setModalContext] = useState<ProductListItem | null>(null)
 
-  const apiClient = useApiClient()
+  const { syncProducts, getProducts } = useApiClient()
+  const dispatch = useAppDispatch()
 
   const handleOk = () => {
     setModalOpened(false)
@@ -54,11 +57,20 @@ export const Products = (props: { syncInProgress: boolean }) => {
     setModalOpened(false)
   }
 
+  const synchronize = useCallback(() => {
+    dispatch(
+      syncActions.updateProductSyncState({
+        productSyncInProgress: true,
+      })
+    )
+    syncProducts()
+  }, [dispatch, syncProducts])
+
   useEffect(() => {
-    apiClient.getProducts().then((result) => {
+    getProducts().then((result) => {
       setRows(result.data.products)
     })
-  }, [apiClient])
+  }, [getProducts, dispatch])
 
   return (
     <div
@@ -79,11 +91,11 @@ export const Products = (props: { syncInProgress: boolean }) => {
           width: `100%`,
         }}
       >
-        <span>{syncInProgress && `Syncing...`}</span>
+        <span>{productSyncInProgress && <Spin />}</span>
         <Button
           type="primary"
           danger
-          onClick={apiClient.syncProducts}
+          onClick={synchronize}
           style={{ marginBottom: 16, alignSelf: 'flex-end' }}
         >
           Synchronizovat
@@ -101,7 +113,7 @@ export const Products = (props: { syncInProgress: boolean }) => {
         }}
         rowKey="id"
         columns={columns}
-        dataSource={rows}
+        dataSource={productSyncInProgress ? [] : rows}
         style={{ width: '100%', height: '100%', overflow: 'auto' }}
         pagination={false}
         sticky={true}

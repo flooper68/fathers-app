@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback } from 'react'
 import { ApolloClient, InMemoryCache } from '@apollo/client'
 import { Switch, Route, useLocation, useHistory } from 'react-router-dom'
-import { Button, Dropdown, Layout, Menu, notification, PageHeader } from 'antd'
+import { Button, Dropdown, Layout, Menu, PageHeader, Spin } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import moment from 'moment'
 
 const { Header, Sider, Content } = Layout
 
@@ -11,8 +12,12 @@ import { Products } from '../products/products'
 import { ApiClientContext, useBuildApiClient } from '../api/api-client'
 import { Orders } from '../orders/orders'
 import { Roastings } from '../roasting/roasting'
-import moment from 'moment'
-import { Logger } from '../../shared/logger'
+import {
+  useAppSync,
+  getOrderLastSyncDate,
+  getOrderSyncInProgress,
+} from './sync'
+import { useAppSelector } from '../store'
 
 const apolloClient = new ApolloClient({
   uri: '/api/graphql',
@@ -41,29 +46,15 @@ const subTitleMap: { [key: string]: string } = {
   '/orders': 'Zde vidíte vše o objednávkách.',
 }
 
-const notifyOrdersAdded = () => {
-  notification.open({
-    message: 'Přibyly nové objednávky',
-  })
-}
-
-const notifySyncError = (message: string) => {
-  notification.error({
-    message: 'Došlo k chybě při synchronizaci',
-    description: message,
-    duration: 0,
-  })
-}
-
 export const Root: React.FunctionComponent = () => {
-  const [lastSync, setLastSync] = useState('')
-  const [syncInProgress, setSyncInProgress] = useState(false)
-  const [productSyncInProgress, setproductSyncInProgress] = useState(false)
-  const [lastSyncDataVersion, setLastSyncDataVersion] = useState(0)
+  const orderLastSyncDate = useAppSelector(getOrderLastSyncDate)
+  const orderSyncInProgress = useAppSelector(getOrderSyncInProgress)
 
   const apiClient = useBuildApiClient(apolloClient)
   const location = useLocation()
   const history = useHistory()
+
+  useAppSync(apiClient)
 
   const menu = (
     <Menu>
@@ -79,36 +70,6 @@ export const Root: React.FunctionComponent = () => {
   const onBack = useCallback(() => {
     history.push('/')
   }, [history])
-
-  useEffect(() => {
-    apiClient.getSyncState().then((state) => {
-      setLastSync(moment(state.data.sync.lastOrderSyncTime).format('LLL'))
-    })
-    let dataVersion = 0
-    let errorOccured = false
-
-    setInterval(() => {
-      Logger.debug(`Syncing state`)
-      apiClient.getSyncState().then((state) => {
-        setLastSync(moment(state.data.sync.lastOrderSyncTime).format('LLL'))
-        setSyncInProgress(state.data.sync.orderSyncInProgress)
-        setproductSyncInProgress(state.data.sync.productSyncInProgress)
-
-        if (state.data.sync.orderSyncDataVersion !== dataVersion) {
-          dataVersion = state.data.sync.orderSyncDataVersion
-          setLastSyncDataVersion(state.data.sync.orderSyncDataVersion)
-          notifyOrdersAdded()
-        }
-
-        if (state.data.sync.orderSyncError && !errorOccured) {
-          errorOccured = true
-          notifySyncError(
-            state.data.sync?.orderSyncErrorMessage || 'There is no message'
-          )
-        }
-      })
-    }, 5000)
-  }, [apiClient])
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -139,10 +100,13 @@ export const Root: React.FunctionComponent = () => {
 
               <span>
                 <span style={{ marginRight: 25 }}>
-                  Objednávky synchronizovány: {lastSync}
+                  {orderLastSyncDate &&
+                    `Poslední sync: ${moment(orderLastSyncDate).format('LLL')}`}
                 </span>
-                {syncInProgress && (
-                  <span style={{ marginRight: 25 }}>Syncing...</span>
+                {orderSyncInProgress && (
+                  <span style={{ marginRight: 25 }}>
+                    <Spin />
+                  </span>
                 )}
                 <Dropdown overlay={menu} placement="bottomLeft">
                   <Button
@@ -156,7 +120,7 @@ export const Root: React.FunctionComponent = () => {
             <Content>
               <Switch>
                 <Route path="/products">
-                  <Products syncInProgress={productSyncInProgress} />
+                  <Products />
                 </Route>
                 <Route path="/Orders">
                   <Orders />

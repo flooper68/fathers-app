@@ -1,18 +1,22 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
 
 import 'antd/dist/antd.css'
 import './index.css'
 import { Root } from './root/root'
 import reportWebVitals from './reportWebVitals'
 import { BrowserRouter as Router } from 'react-router-dom'
+import { store } from './store'
 
 export const startReact = () => {
   ReactDOM.render(
     // <React.StrictMode>
-    <Router>
-      <Root />
-    </Router>,
+    <Provider store={store}>
+      <Router>
+        <Root />
+      </Router>
+    </Provider>,
     // </React.StrictMode>
     document.getElementById('root')
   )
