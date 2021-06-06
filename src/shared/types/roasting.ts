@@ -1,7 +1,6 @@
 export enum RoastingStatus {
   FINISHED = 'FINISHED',
   IN_PROGRESS = 'IN_PROGRESS',
-  FULL = 'FULL',
   IN_PLANNING = 'IN_PLANNING',
 }
 
@@ -24,6 +23,9 @@ export interface RoastingRoastedCoffee {
 
 export interface Roasting {
   id: string
+  dateCreated: string
+  datePlanningClosed: string
+  dateFinished: string
   schemaVersion: number
   status: RoastingStatus
   greenCoffee: RoastingGreenCoffee[]

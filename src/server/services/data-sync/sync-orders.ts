@@ -1,30 +1,9 @@
+import { RoastingService } from '../roasting-service'
 import { Logger } from '../../../shared/logger'
-import { GreenCoffee } from '../../../shared/types/green-coffee'
-import {
-  OrderStatus,
-  WooCommerceOrderResponse,
-  Order,
-} from '../../../shared/types/order'
-import { RoastedCoffee } from '../../../shared/types/roasted-coffee'
-import {
-  getEmptyRoastingObject,
-  getNextPlannedRoasting,
-  mergeRoastingData,
-} from '../../domain/roasting'
-import {
-  RoastedCoffeeMap,
-  GreenCoffeeMap,
-} from '../../domain/roasting-settings'
+import { WooCommerceOrderResponse, Order } from '../../../shared/types/order'
 import { OrderModel } from '../../models/order'
-import { ProductModel } from '../../models/product.'
 import { runPromisesInSequence } from '../../promise-utils'
 import { WooCommerceClient } from '../woocommerce'
-
-const READY_FOR_ROASTING_STATUSES = [
-  OrderStatus.PENDING,
-  OrderStatus.PROCESSING,
-  OrderStatus.COMPLETED,
-]
 
 const mapOrder = (order: WooCommerceOrderResponse): Order => {
   return {
@@ -55,9 +34,9 @@ const syncOrder = async (order: Order) => {
   if (dbEntity) {
     Logger.debug(`Order ${order.id} exists`)
 
-    if (dbEntity.dateModified === order.dateModified) {
-      Logger.info(`Order ${order.id} was modified, updating status`)
-      await dbEntity.updateOne({ status: order.status })
+    if (dbEntity.dateModified !== order.dateModified) {
+      Logger.info(`Order ${order.id} was modified, updating`)
+      await dbEntity.updateOne(order)
       return
     } else {
       Logger.debug(`Order ${order.id} was not modified`)
@@ -70,131 +49,10 @@ const syncOrder = async (order: Order) => {
   }
 }
 
-const getItemRoastingData = (
-  totalWeight: number,
-  greenCoffeeId: number,
-  lossFactor: number,
-  batchWeight: number,
-  roastedCoffeeId: number
-) => {
-  const roastingData = getEmptyRoastingObject()
-
-  roastingData.totalWeight += totalWeight
-  Logger.debug(`Total weight ${totalWeight}`)
-
-  roastingData.greenCoffee = roastingData.greenCoffee.map((coffee) => {
-    if (coffee.id === greenCoffeeId) {
-      Logger.debug(
-        `Green coffee ${coffee.name}, amount ${totalWeight / lossFactor}`
-      )
-      return {
-        ...coffee,
-
-        weight: totalWeight / lossFactor,
-      }
-    }
-    return coffee
-  })
-
-  roastingData.roastedCoffee = roastingData.roastedCoffee.map((coffee) => {
-    if (coffee.id === roastedCoffeeId) {
-      Logger.debug(
-        `Roasted coffee ${coffee.name}, amount ${totalWeight}, batches ${
-          totalWeight / lossFactor / batchWeight
-        }`
-      )
-      return {
-        ...coffee,
-        weight: totalWeight,
-        numberOfBatches: totalWeight / lossFactor / batchWeight,
-      }
-    }
-    return coffee
-  })
-
-  return roastingData
-}
-
-const mapLineItemForRoasting = async (lineItem) => {
-  const product = await ProductModel.findOne({
-    id: lineItem.productId,
-  })
-
-  if (!product) {
-    throw new Error(
-      `Invalid state - missing product ${lineItem.productId} in database, try syncing products with WooCommerce`
-    )
-  }
-
-  if (!product?.roastedCoffeeId) {
-    Logger.info(`Product ${product.name} is not roastable, skipping`)
-    return
-  }
-
-  const roastedCoffee: RoastedCoffee = RoastedCoffeeMap[product.roastedCoffeeId]
-
-  const greenCoffee: GreenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
-
-  const variation = product.variations.find(
-    (variation) => variation.id === lineItem.variationId
-  )
-
-  if (!variation) {
-    throw new Error('Missing product variation')
-  }
-
-  const totalWeight = lineItem.quantity * variation.weight
-
-  Logger.info(
-    `Processing item ${lineItem.id} with product ${product.name} for roasting`
-  )
-  return getItemRoastingData(
-    totalWeight,
-    greenCoffee.id,
-    greenCoffee.roastingLossFactor,
-    greenCoffee.batchWeight,
-    roastedCoffee.id
-  )
-}
-
-const processOrderForRoasting = async (order: Order) => {
-  if (!READY_FOR_ROASTING_STATUSES.includes(order.status)) {
-    Logger.info(
-      `Skipping roasting processing for order ${order.id}, status ${order.status}`
-    )
-    return
-  }
-
-  const itemsRoastingData = await Promise.all(
-    order.lineItems.map(mapLineItemForRoasting)
-  )
-
-  const orderRoastingData = itemsRoastingData.reduce(
-    mergeRoastingData,
-    getEmptyRoastingObject()
-  )
-
-  orderRoastingData.orders = [order.id]
-
-  Logger.debug(`Order line items roasting data aggregated`)
-
-  const plannedRoasting = await getNextPlannedRoasting()
-
-  const updatedRoastingData = mergeRoastingData(
-    plannedRoasting.toObject(),
-    orderRoastingData
-  )
-
-  await plannedRoasting.updateOne(updatedRoastingData)
-  await OrderModel.updateOne(
-    { id: order.id },
-    { roastingId: plannedRoasting.id }
-  )
-
-  Logger.info(`Updated roasting ${plannedRoasting.id} with order ${order.id}`)
-}
-
-export const buildSyncNewOrders = (client: WooCommerceClient) => async () => {
+export const buildSyncNewOrders = (
+  client: WooCommerceClient,
+  roastingService: RoastingService
+) => async () => {
   const start = Date.now()
   Logger.info('Syncing new orders')
 
@@ -203,19 +61,25 @@ export const buildSyncNewOrders = (client: WooCommerceClient) => async () => {
 
   Logger.info(`Fetched ${result.totalCount} orders`)
 
+  let changeCounter = 0
   const handleNewOrder = async (order: Order) => {
     await syncOrder(order)
-    await processOrderForRoasting(order)
+    const addedToRoasting = await roastingService.processOrderForRoasting(order)
+    if (addedToRoasting) {
+      changeCounter++
+    }
   }
 
   await runPromisesInSequence(orders, handleNewOrder)
 
   const stop = Date.now()
   Logger.info(`Syncing orders finished, took ${stop - start} ms`)
+  return changeCounter
 }
 
 export const buildSyncUnresolvedOrders = (
-  client: WooCommerceClient
+  client: WooCommerceClient,
+  roastingService: RoastingService
 ) => async () => {
   const start = Date.now()
   Logger.info('Syncing unresolved orders')
@@ -224,14 +88,19 @@ export const buildSyncUnresolvedOrders = (
   const orders: Order[] = result.rows.map(mapOrder)
 
   Logger.info(`Fetched ${result.totalCount} orders`)
+  let changeCounter = 0
 
   const handleOrder = async (order: Order) => {
     await syncOrder(order)
-    await processOrderForRoasting(order)
+    const addedToRoasting = await roastingService.processOrderForRoasting(order)
+    if (addedToRoasting) {
+      changeCounter++
+    }
   }
 
   await runPromisesInSequence(orders, handleOrder)
 
   const stop = Date.now()
   Logger.info(`Syncing orders finished, took ${stop - start} ms`)
+  return changeCounter
 }

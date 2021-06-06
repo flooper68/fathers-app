@@ -2,7 +2,6 @@ import { Button, Descriptions, List, Modal, Table } from 'antd'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
-import { Logger } from '../../shared/logger'
 import { useApiClient } from '../api/api-client'
 import { OrderListItem } from '../api/graphql-queries'
 
@@ -16,11 +15,20 @@ const columns = [
     title: 'Vytvořeno',
     dataIndex: 'dateCreated',
     key: 'dateCreated',
+    render: (dateCreated: string) => (
+      <span>{moment(dateCreated).format('LLL')}</span>
+    ),
   },
   {
     title: 'Status',
     dataIndex: 'status',
     key: 'status',
+  },
+  {
+    title: 'Zařazen do pražení',
+    dataIndex: 'roastingId',
+    key: 'roastingId',
+    render: (roastingId: string) => <span>{roastingId ? `Ano` : ``}</span>,
   },
 ]
 
@@ -41,7 +49,6 @@ export const Orders = () => {
 
   useEffect(() => {
     apiClient.getOrders().then((result) => {
-      Logger.debug(result.data.orders)
       setRows(result.data.orders)
     })
   }, [apiClient])

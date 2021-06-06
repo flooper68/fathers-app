@@ -1,7 +1,4 @@
-import {
-  GreenCoffeeMap,
-  RoastedCoffeeMap,
-} from '../../domain/roasting-settings'
+import { GreenCoffeeMap, RoastedCoffeeMap } from '../../roasting-settings'
 
 export const getGreenCoffee = async (id: number) => {
   const greenCoffee = Object.values(GreenCoffeeMap).find(

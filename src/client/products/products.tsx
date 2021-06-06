@@ -1,6 +1,5 @@
 import { Button, Card, Descriptions, Modal, Table } from 'antd'
 import Meta from 'antd/lib/card/Meta'
-import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
 import { useApiClient } from '../api/api-client'
@@ -18,22 +17,29 @@ const columns = [
     key: 'name',
   },
   {
-    title: 'Kategorie',
-    dataIndex: 'categories',
-    key: 'categories',
-    render: (categories: { name: string }[]) => (
-      <span>{categories.map((item) => item.name).join(', ')}</span>
-    ),
+    title: 'Pražení',
+    dataIndex: 'roastedCoffee',
+    key: 'roastedCoffee',
+    render: (item: { name?: string }) => <span>{item?.name}</span>,
   },
   {
-    title: 'Změněno',
-    dataIndex: 'dateModified',
-    key: 'dateModified',
-    render: (text: string) => <span>{moment(text).format('LLLL')}</span>,
+    title: 'Variace',
+    dataIndex: 'variations',
+    key: 'variations',
+    render: (variations: { weight: string }[]) => (
+      <span>
+        {variations
+          .filter((item) => !!item.weight)
+          .map((item) => `${item.weight} kg`)
+          .join(', ')}
+      </span>
+    ),
   },
 ]
 
-export const Products = () => {
+export const Products = (props: { syncInProgress: boolean }) => {
+  const { syncInProgress } = props
+
   const [rows, setRows] = useState<ProductListItem[]>([])
   const [modalOpened, setModalOpened] = useState(false)
   const [modalContext, setModalContext] = useState<ProductListItem | null>(null)
@@ -66,6 +72,24 @@ export const Products = () => {
         height: '100%',
       }}
     >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          width: `100%`,
+        }}
+      >
+        <span>{syncInProgress && `Syncing...`}</span>
+        <Button
+          type="primary"
+          danger
+          onClick={apiClient.syncProducts}
+          style={{ marginBottom: 16, alignSelf: 'flex-end' }}
+        >
+          Synchronizovat
+        </Button>
+      </div>
+
       <Table
         onRow={(record: ProductListItem) => {
           return {

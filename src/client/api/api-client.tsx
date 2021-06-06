@@ -7,6 +7,14 @@ import {
   ProductListItem,
   ProductListQuery,
   OrderListItem,
+  RoastingListItem,
+  RoastingListQuery,
+  SyncState,
+  SyncStateQuery,
+  SuccessResult,
+  FinishRoastingMutation,
+  ClosePlanningMutation,
+  SynchronizeProductsMutation,
 } from './graphql-queries'
 
 export const useBuildApiClient = (
@@ -28,12 +36,65 @@ export const useBuildApiClient = (
     })
   }, [client])
 
+  const getRoastings = useCallback(() => {
+    return client.query<{
+      roastings: RoastingListItem[]
+    }>({
+      query: RoastingListQuery,
+    })
+  }, [client])
+
+  const getSyncState = useCallback(() => {
+    return client.query<{
+      sync: SyncState
+    }>({
+      query: SyncStateQuery,
+    })
+  }, [client])
+
+  const finishRoasting = useCallback(() => {
+    return client.mutate<{
+      finishRoasting: SuccessResult
+    }>({
+      mutation: FinishRoastingMutation,
+    })
+  }, [client])
+
+  const closePlanning = useCallback(() => {
+    return client.mutate<{
+      closePlanning: SuccessResult
+    }>({
+      mutation: ClosePlanningMutation,
+    })
+  }, [client])
+
+  const syncProducts = useCallback(() => {
+    return client.mutate<{
+      synchronizeProducts: null
+    }>({
+      mutation: SynchronizeProductsMutation,
+    })
+  }, [client])
+
   return useMemo(
     () => ({
       getProducts,
       getOrders,
+      getRoastings,
+      getSyncState,
+      finishRoasting,
+      closePlanning,
+      syncProducts,
     }),
-    [getProducts, getOrders]
+    [
+      getProducts,
+      getOrders,
+      getRoastings,
+      getSyncState,
+      finishRoasting,
+      closePlanning,
+      syncProducts,
+    ]
   )
 }
 

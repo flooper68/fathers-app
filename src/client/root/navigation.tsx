@@ -10,9 +10,8 @@ import Title from 'antd/lib/typography/Title'
 
 const locationKeyMap: Record<string, string> = {
   '/': '1',
-  '/products': '2',
-  '/categories': '3',
-  '/orders': '4',
+  '/orders': '2',
+  '/products': '3',
 }
 
 export const Navigation = () => {
@@ -40,13 +39,13 @@ export const Navigation = () => {
         theme="light"
       >
         <Menu.Item key="1" icon={<HomeOutlined />}>
-          <Link to="">Domů</Link>
+          <Link to="">Pražení</Link>
         </Menu.Item>
-        <Menu.Item key="2" icon={<UnorderedListOutlined />}>
-          <Link to="products">Produkty</Link>
-        </Menu.Item>
-        <Menu.Item key="3" icon={<WalletOutlined />}>
+        <Menu.Item key="2" icon={<WalletOutlined />}>
           <Link to="orders">Objednávky</Link>
+        </Menu.Item>
+        <Menu.Item key="3" icon={<UnorderedListOutlined />}>
+          <Link to="products">Produkty</Link>
         </Menu.Item>
       </Menu>
     </div>

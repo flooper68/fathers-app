@@ -1,4 +1,4 @@
-import { RoastedCoffeeMap } from '../../domain/roasting-settings'
+import { RoastedCoffeeMap } from '../../roasting-settings'
 import { getGreenCoffee } from './green-coffee-resolvers'
 
 export const getRoastedCoffee = async (id: number) => {

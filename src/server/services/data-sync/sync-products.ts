@@ -3,9 +3,9 @@ import {
   WooCommerceProductResponse,
   Product,
 } from '../../../shared/types/product'
-import { RoastedCoffeeProductMap } from '../../domain/roasting-settings'
 import { ProductModel } from '../../models/product.'
 import { reducePromisesInSequence } from '../../promise-utils'
+import { RoastedCoffeeProductMap } from '../../roasting-settings'
 import { WooCommerceClient } from '../woocommerce'
 
 const fetchVariationsAndMapProducts = async (
@@ -63,23 +63,42 @@ const syncProduct = async (product: Product) => {
   }
 }
 
-export const buildSyncProducts = (client: WooCommerceClient) => async () => {
+export const buildSyncProducts = (
+  client: WooCommerceClient,
+  updateSyncState: (state: {
+    productSyncInProgress: boolean
+    productSyncError?: boolean
+    productSyncErrorMessage?: string
+  }) => void
+) => async () => {
   const start = Date.now()
+  updateSyncState({ productSyncInProgress: true })
   Logger.info('Syncing products')
-  const result = await client.getAllProducts()
 
-  Logger.info(`Fetched ${result.totalCount} products`)
+  try {
+    const result = await client.getAllProducts()
 
-  const products = await reducePromisesInSequence(
-    result.rows,
-    (item: WooCommerceProductResponse, productsMemo: Product[]) =>
-      fetchVariationsAndMapProducts(item, client, productsMemo)
-  )
+    Logger.info(`Fetched ${result.totalCount} products`)
 
-  Logger.debug('Finished downloading data')
+    const products = await reducePromisesInSequence(
+      result.rows,
+      (item: WooCommerceProductResponse, productsMemo: Product[]) =>
+        fetchVariationsAndMapProducts(item, client, productsMemo)
+    )
 
-  await Promise.all(products.map(syncProduct))
+    Logger.debug('Finished downloading data')
+
+    await Promise.all(products.map(syncProduct))
+  } catch (e) {
+    updateSyncState({
+      productSyncInProgress: false,
+      productSyncError: true,
+      productSyncErrorMessage: e?.message,
+    })
+    Logger.error(`Error syncing products`, e)
+  }
 
   const stop = Date.now()
   Logger.info(`Syncing products finished, took ${stop - start} ms`)
+  updateSyncState({ productSyncInProgress: false })
 }
