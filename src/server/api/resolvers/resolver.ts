@@ -4,6 +4,7 @@ import { getGreenCoffees } from './green-coffee-resolvers'
 import { getRoastedCoffees } from './roasted-coffee-resolvers'
 import { SyncService } from '../../services/data-sync/data-sync'
 import { RoastingService } from '../../services/roasting-service'
+import { buildRoastingResolvers } from './roasting-resolvers'
 
 export const buildAppResolver = (
   syncService: SyncService,
@@ -22,3 +23,4 @@ export const buildAppResolver = (
     closePlanning: roastingResolvers.closePlanningResolver,
     synchronizeProducts: syncService.syncProducts,
   }
+}
