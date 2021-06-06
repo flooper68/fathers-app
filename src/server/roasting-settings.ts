@@ -1,5 +1,5 @@
-import { GreenCoffee } from './../../shared/types/green-coffee'
-import { RoastedCoffee } from './../../shared/types/roasted-coffee'
+import { GreenCoffee } from '../shared/types/green-coffee'
+import { RoastedCoffee } from '../shared/types/roasted-coffee'
 
 export const GreenCoffeeMap: Record<number, GreenCoffee> = {
   [1]: {
@@ -56,7 +56,7 @@ export const RoastedCoffeeMap: Record<number, RoastedCoffee> = {
 }
 
 //This will be in Product as attribute
-export const RoastedCoffeeProductMap = {
+export const RoastedCoffeeProductMap: Record<number, number> = {
   [13277]: 1, // Kolumbie - La Colombia Filtr, Káva
   [13286]: 2, // Kolumbie - La Colombia Espresso, Káva
   [9318]: 3, // Peru - El Paraiso Filtr, Káva
