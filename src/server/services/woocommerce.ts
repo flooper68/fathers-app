@@ -29,17 +29,46 @@ const getCounts = (headers: { [key: string]: string }) => {
   return { totalCount, pagesCount }
 }
 
+const buildGetItems = <EntityWooCommerceResponse>(
+  client: WooCommerceApi,
+  url: string
+) => async (
+  queryParams?: Record<string, string | number | number[] | undefined>
+) => {
+  const stringifiedQuery = queryParams
+    ? query.stringify(queryParams, {
+        arrayFormat: 'comma',
+      })
+    : ''
+
+  Logger.debug('Fetching data.')
+
+  const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
+    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&${stringifiedQuery}`
+  )
+  const { totalCount, pagesCount } = getCounts(headers)
+  Logger.debug(`Total pages count ${pagesCount}`)
+
+  return { rows: data, totalCount, pagesCount }
+}
+
 const buildGetAllItems = <EntityWooCommerceResponse>(
   client: WooCommerceApi,
   url: string
-) => async (queryParams?: Record<string, string | number | number[]>) => {
+) => async (
+  queryParams?: Record<string, string | number | number[] | undefined>
+) => {
   let allData: EntityWooCommerceResponse[] = []
+
+  const stringifiedQuery = queryParams
+    ? query.stringify(queryParams, {
+        arrayFormat: 'comma',
+      })
+    : ''
 
   Logger.debug('Fetching initial page.')
   const { data, headers } = await client.get<EntityWooCommerceResponse[]>(
-    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&${query.stringify(queryParams, {
-      arrayFormat: 'comma',
-    })}`
+    `${url}?page=1&per_page=${ITEMS_PER_PAGE}&${stringifiedQuery}`
   )
   const { totalCount, pagesCount } = getCounts(headers)
   Logger.debug(`Total pages count ${pagesCount}`)
@@ -49,9 +78,7 @@ const buildGetAllItems = <EntityWooCommerceResponse>(
   while (page <= pagesCount) {
     Logger.debug(`Fetching page ${page} of ${pagesCount}`)
     const { data } = await client.get<EntityWooCommerceResponse[]>(
-      `${url}?page=${page}&per_page=${ITEMS_PER_PAGE}&${query.stringify(
-        queryParams
-      )}`
+      `${url}?page=${page}&per_page=${ITEMS_PER_PAGE}&${stringifiedQuery}`
     )
     allData = [...allData, ...data]
     page++
@@ -62,9 +89,9 @@ const buildGetAllItems = <EntityWooCommerceResponse>(
 
 export const buildWooCommerceClient = async () => {
   const client: WooCommerceApi = new WooCommerceRestApi({
-    url: process.env.WOOCOMMERCE_URL,
-    consumerKey: process.env.WOOCOMMERCE_KEY,
-    consumerSecret: process.env.WOOCOMMERCE_SECRET,
+    url: process.env.WOOCOMMERCE_URL || '',
+    consumerKey: process.env.WOOCOMMERCE_KEY || '',
+    consumerSecret: process.env.WOOCOMMERCE_SECRET || '',
     version: 'wc/v3',
   })
 
@@ -86,6 +113,7 @@ export const buildWooCommerceClient = async () => {
         client,
         `products/${id}/variations`
       )(),
+    getOrders: buildGetItems<WooCommerceOrderResponse>(client, 'orders'),
     getAllOrdersAfterDate: (after?: string, include?: number[]) =>
       buildGetAllItems<WooCommerceOrderResponse>(
         client,
@@ -98,6 +126,13 @@ export const buildWooCommerceClient = async () => {
       )({ after: moment().startOf('week').toISOString() }),
     getNewOrders: async () => {
       const lastSavedOrder = await OrderModel.findOne().sort({ id: -1 })
+
+      if (!lastSavedOrder) {
+        throw new Error(
+          `Can not get new orders, there is no last order. Sync old orders first.`
+        )
+      }
+
       Logger.debug(
         `Fetching new orders, last saved order ${lastSavedOrder.id}, created at ${lastSavedOrder.dateCreated}`
       )

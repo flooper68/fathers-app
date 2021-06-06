@@ -34,7 +34,7 @@ export interface Product {
   categories: { id: number; name: string }[]
   variations: {
     id: number
-    weight: number
+    weight?: number
   }[]
   roastedCoffeeId?: number
 }

@@ -19,12 +19,17 @@
     "test:server:watch": "jest /src/server --watch",
     "prepare": "husky install",
     "lint": "eslint --ext .js,.ts,.jsx,.tsx --quiet",
-    "pretty": "prettier --write src"
+    "pretty": "prettier --write src",
+    "sync:orders:all": "ts-node --project tsconfig.server.json ./scripts/sync_all_orders.ts",
+    "sync:orders:some": "ts-node --project tsconfig.server.json ./scripts/sync_some_orders.ts",
+    "sync:products": "ts-node --project tsconfig.server.json ./scripts/sync_products.ts",
+    "drop:data": "ts-node --project tsconfig.server.json ./scripts/drop_data.ts"
   },
   "dependencies": {
     "@apollo/client": "^3.3.13",
     "@types/lodash": "^4.14.170",
     "@types/react-router-dom": "^5.1.7",
+    "@types/woocommerce__woocommerce-rest-api": "^1.0.1",
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "antd": "^4.15.0",
     "dataloader": "^2.0.0",

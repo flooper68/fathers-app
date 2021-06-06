@@ -5,7 +5,7 @@ export const runPromisesInSequence = async <Item>(
   return array.reduce(async (memo, item) => {
     await memo
     return callback(item)
-  }, Promise.resolve(null))
+  }, Promise.resolve())
 }
 
 export const reducePromisesInSequence = async <Item, Result>(

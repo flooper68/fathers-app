@@ -1,6 +1,6 @@
+import { Logger } from './../../shared/logger'
 import { RoastingStatus } from '../../shared/types/roasting'
 import { RoastingModel } from '../models/roasting'
-import { Logger } from '../../shared/logger'
 import { GreenCoffee } from '../../shared/types/green-coffee'
 import { OrderStatus, Order } from '../../shared/types/order'
 import { RoastedCoffee } from '../../shared/types/roasted-coffee'
@@ -283,6 +283,10 @@ const processOrderForRoasting = async (order: Order) => {
 }
 
 export const buildRoastingService = () => {
+  getNextPlannedRoasting().then((roasting) =>
+    Logger.debug(`Next roasting is ${roasting.id}`)
+  )
+
   return {
     processOrderForRoasting,
     getNextPlannedRoasting,

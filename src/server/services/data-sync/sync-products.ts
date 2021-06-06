@@ -8,7 +8,7 @@ import { reducePromisesInSequence } from '../../promise-utils'
 import { RoastedCoffeeProductMap } from '../../roasting-settings'
 import { WooCommerceClient } from '../woocommerce'
 
-const fetchVariationsAndMapProducts = async (
+export const fetchVariationsAndMapProducts = async (
   item: WooCommerceProductResponse,
   client: WooCommerceClient,
   products: Product[]
@@ -18,7 +18,7 @@ const fetchVariationsAndMapProducts = async (
 
   Logger.info(`Received ${variations.totalCount} product variations`)
 
-  const roastedCoffeeId = RoastedCoffeeProductMap[item.id]
+  const roastedCoffeeId = RoastedCoffeeProductMap[item.id] as number
 
   if (!roastedCoffeeId) {
     Logger.info(`Product ${item.name} is not setup for roasting.`)
@@ -39,7 +39,7 @@ const fetchVariationsAndMapProducts = async (
       return {
         id: variation.id,
         weight: isNaN(parseFloat(variation.weight))
-          ? null
+          ? undefined
           : parseFloat(variation.weight),
       }
     }),
@@ -48,7 +48,7 @@ const fetchVariationsAndMapProducts = async (
   return products
 }
 
-const syncProduct = async (product: Product) => {
+export const syncProduct = async (product: Product) => {
   const dbEntity = await ProductModel.findOne({
     id: product.id,
   }).exec()
