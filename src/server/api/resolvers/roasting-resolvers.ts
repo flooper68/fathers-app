@@ -1,3 +1,4 @@
+
 import { Logger } from './../../../shared/logger'
 import { RoastingService } from '../../services/roasting-service'
 import { RoastingDocument } from './../../models/roasting'
@@ -10,6 +11,7 @@ const mapRoasting = (item: RoastingDocument) => {
     dateCreated: item.dateCreated,
     datePlanningClosed: item.datePlanningClosed,
     dateFinished: item.dateFinished,
+
     status: item.status,
     totalWeight: item.totalWeight,
     orderIds: item.orders,
@@ -59,3 +61,4 @@ export const buildRoastingResolvers = (roastingService: RoastingService) => {
     getRoastings,
   }
 }
+

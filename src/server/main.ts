@@ -40,7 +40,6 @@ mongoose
         })
       )
 
-      // await syncService.syncProducts()
       await syncService.startOrderSyncJob()
     })
   })

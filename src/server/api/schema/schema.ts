@@ -19,6 +19,7 @@ export const appSchema = buildSchema(`
         greenCoffee: GreenCoffee
     }
 
+
     type RoastingGreenCoffee {
         id: Int!
         name: String!
@@ -47,6 +48,7 @@ export const appSchema = buildSchema(`
         orders: [Order]!
         greenCoffee: [RoastingGreenCoffee]
         roastedCoffee: [RoastingRoastedCoffee]
+
     }
 
     type ProductCategory {
@@ -115,13 +117,13 @@ export const appSchema = buildSchema(`
         success: Boolean
     }
 
-
     type RootQuery {
         greenCoffees: [GreenCoffee]!
         roastedCoffees: [RoastedCoffee]!
         orders: [Order]!
         products: [Product]!
         roastings: [Roasting]!
+
         sync: Sync
     }
 
@@ -129,6 +131,7 @@ export const appSchema = buildSchema(`
         finishRoasting: SuccessResult
         closePlanning: SuccessResult
         synchronizeProducts: Void
+
     }
 
     schema {

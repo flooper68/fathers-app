@@ -1,4 +1,3 @@
-import { buildRoastingResolvers } from './roasting-resolvers'
 import { getOrders } from './order-resolvers'
 import { getProducts } from './product-resolvers'
 import { getGreenCoffees } from './green-coffee-resolvers'
@@ -23,4 +22,3 @@ export const buildAppResolver = (
     closePlanning: roastingResolvers.closePlanningResolver,
     synchronizeProducts: syncService.syncProducts,
   }
-}

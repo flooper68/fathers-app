@@ -49,6 +49,130 @@ const syncOrder = async (order: Order) => {
   }
 }
 
+const getItemRoastingData = (
+  totalWeight: number,
+  greenCoffeeId: number,
+  lossFactor: number,
+  batchWeight: number,
+  roastedCoffeeId: number
+) => {
+  const roastingData = getEmptyRoastingObject()
+
+  roastingData.totalWeight += totalWeight
+  Logger.debug(`Total weight ${totalWeight}`)
+
+  roastingData.greenCoffee = roastingData.greenCoffee.map((coffee) => {
+    if (coffee.id === greenCoffeeId) {
+      Logger.debug(
+        `Green coffee ${coffee.name}, amount ${totalWeight / lossFactor}`
+      )
+      return {
+        ...coffee,
+
+        weight: totalWeight / lossFactor,
+      }
+    }
+    return coffee
+  })
+
+  roastingData.roastedCoffee = roastingData.roastedCoffee.map((coffee) => {
+    if (coffee.id === roastedCoffeeId) {
+      Logger.debug(
+        `Roasted coffee ${coffee.name}, amount ${totalWeight}, batches ${
+          totalWeight / lossFactor / batchWeight
+        }`
+      )
+      return {
+        ...coffee,
+        weight: totalWeight,
+        numberOfBatches: totalWeight / lossFactor / batchWeight,
+      }
+    }
+    return coffee
+  })
+
+  return roastingData
+}
+
+const mapLineItemForRoasting = async (lineItem) => {
+  const product = await ProductModel.findOne({
+    id: lineItem.productId,
+  })
+
+  if (!product) {
+    throw new Error(
+      `Invalid state - missing product ${lineItem.productId} in database, try syncing products with WooCommerce`
+    )
+  }
+
+  if (!product?.roastedCoffeeId) {
+    Logger.info(`Product ${product.name} is not roastable, skipping`)
+    return
+  }
+
+  const roastedCoffee: RoastedCoffee = RoastedCoffeeMap[product.roastedCoffeeId]
+
+  const greenCoffee: GreenCoffee = GreenCoffeeMap[roastedCoffee.greenCoffeeId]
+
+  const variation = product.variations.find(
+    (variation) => variation.id === lineItem.variationId
+  )
+
+  if (!variation) {
+    throw new Error('Missing product variation')
+  }
+
+  const totalWeight = lineItem.quantity * variation.weight
+
+  Logger.info(
+    `Processing item ${lineItem.id} with product ${product.name} for roasting`
+  )
+  return getItemRoastingData(
+    totalWeight,
+    greenCoffee.id,
+    greenCoffee.roastingLossFactor,
+    greenCoffee.batchWeight,
+    roastedCoffee.id
+  )
+}
+
+const processOrderForRoasting = async (order: Order) => {
+  if (!READY_FOR_ROASTING_STATUSES.includes(order.status)) {
+    Logger.info(
+      `Skipping roasting processing for order ${order.id}, status ${order.status}`
+    )
+    return
+  }
+
+  const itemsRoastingData = await Promise.all(
+    order.lineItems.map(mapLineItemForRoasting)
+  )
+
+  const orderRoastingData = itemsRoastingData.reduce(
+    mergeRoastingData,
+    getEmptyRoastingObject()
+  )
+
+  orderRoastingData.orders = [order.id]
+
+  Logger.debug(`Order line items roasting data aggregated`)
+
+  const plannedRoasting = await getNextPlannedRoasting()
+
+  const updatedRoastingData = mergeRoastingData(
+    plannedRoasting.toObject(),
+    orderRoastingData
+  )
+
+  await plannedRoasting.updateOne(updatedRoastingData)
+  await OrderModel.updateOne(
+    { id: order.id },
+    { roastingId: plannedRoasting.id }
+  )
+
+  Logger.info(`Updated roasting ${plannedRoasting.id} with order ${order.id}`)
+}
+
 export const buildSyncNewOrders = (
   client: WooCommerceClient,
   roastingService: RoastingService
