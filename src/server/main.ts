@@ -7,20 +7,12 @@ import { Logger } from './../shared/logger'
 import { buildWooCommerceClient } from './services/woocommerce'
 import { buildDataSync } from './services/data-sync/data-sync'
 import { appSchema } from './api/schema/schema'
-import { appResolvers } from './api/resolvers/resolver'
+import { buildAppResolver } from './api/resolvers/resolver'
+import { buildRoastingService } from './services/roasting-service'
 
 config()
 
 const app = express()
-
-app.use(
-  '/api/graphql',
-  graphqlHTTP({
-    schema: appSchema,
-    rootValue: appResolvers,
-    graphiql: true,
-  })
-)
 
 mongoose
   .connect(
@@ -35,13 +27,20 @@ mongoose
     app.listen(process.env.SERVER_PORT, async () => {
       Logger.info(`App listening at port ${process.env.SERVER_PORT}`)
 
+      const roastingService = buildRoastingService()
       const woocommerceClient = await buildWooCommerceClient()
-      const dataSync = buildDataSync(woocommerceClient)
-      // await dataSync.syncProducts()
-      await dataSync.syncNewOrders()
-      // await dataSync.syncUnresolvedOrders()
-      // await finishRoasting()
-      // await closeRoastingPlanning()
+      const syncService = buildDataSync(woocommerceClient, roastingService)
+
+      app.use(
+        '/api/graphql',
+        graphqlHTTP({
+          schema: appSchema,
+          rootValue: buildAppResolver(syncService, roastingService),
+          graphiql: true,
+        })
+      )
+
+      await syncService.startOrderSyncJob()
     })
   })
 

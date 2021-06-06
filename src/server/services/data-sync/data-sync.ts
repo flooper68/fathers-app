@@ -1,13 +1,46 @@
-import { Logger } from '../../../shared/logger'
+import { Logger } from './../../../shared/logger'
+import { RoastingService } from '../roasting-service'
 import { buildSyncNewOrders, buildSyncUnresolvedOrders } from './sync-orders'
 import { buildSyncProducts } from './sync-products'
 import { WooCommerceClient } from '../woocommerce'
 
-const ORDER_SYNC_INTERVAL_MS = 300000
+const ORDER_SYNC_INTERVAL_MS = 30000
 
-export const buildDataSync = (client: WooCommerceClient) => {
-  const syncNewOrders = buildSyncNewOrders(client)
-  const syncUnresolvedOrders = buildSyncUnresolvedOrders(client)
+export const buildDataSync = (
+  client: WooCommerceClient,
+  roastingService: RoastingService
+) => {
+  let syncState = {
+    lastOrderSyncTime: new Date().toISOString(),
+    orderSyncInProgress: false,
+    orderSyncDataVersion: 0,
+    orderSyncErrorMessage: undefined,
+    orderSyncError: undefined,
+    productSyncInProgress: false,
+    productSyncDataVersion: 0,
+    productSyncError: undefined,
+    productSyncErrorMessage: undefined,
+  }
+
+  const setProductSyncState = (state: {
+    productSyncInProgress: boolean
+    productSyncError?: boolean
+    productSyncErrorMessage?: string
+  }) => {
+    syncState = {
+      ...syncState,
+      ...state,
+      productSyncDataVersion: state.productSyncError
+        ? syncState.productSyncDataVersion
+        : syncState.productSyncDataVersion + 1,
+    }
+  }
+
+  const syncNewOrders = buildSyncNewOrders(client, roastingService)
+  const syncUnresolvedOrders = buildSyncUnresolvedOrders(
+    client,
+    roastingService
+  )
 
   const startOrderSyncJob = () => {
     Logger.debug(
@@ -17,12 +50,33 @@ export const buildDataSync = (client: WooCommerceClient) => {
     )
 
     const sync = async () => {
-      await syncNewOrders()
-      await syncUnresolvedOrders()
+      syncState.orderSyncInProgress = true
+
+      try {
+        const newOrdersAdded = await syncNewOrders()
+        const updatedOrdersAdded = await syncUnresolvedOrders()
+
+        if (newOrdersAdded + updatedOrdersAdded > 1) {
+          Logger.debug(
+            `${
+              newOrdersAdded + updatedOrdersAdded
+            } orders were processed for roasting, updating order data version`
+          )
+          syncState.orderSyncDataVersion++
+        } else {
+          Logger.debug(`There were no changes in roasting`)
+        }
+      } catch (e) {
+        syncState.orderSyncErrorMessage = e.message
+        syncState.orderSyncError = true
+        Logger.error(`Error syncing orders`, e)
+      }
+
+      syncState.lastOrderSyncTime = new Date().toISOString()
+      syncState.orderSyncInProgress = false
 
       setTimeout(async () => {
-        await syncNewOrders()
-        await syncUnresolvedOrders()
+        sync()
       }, ORDER_SYNC_INTERVAL_MS)
     }
 
@@ -30,9 +84,16 @@ export const buildDataSync = (client: WooCommerceClient) => {
   }
 
   return {
-    syncProducts: buildSyncProducts(client),
+    syncProducts: () => {
+      buildSyncProducts(client, setProductSyncState)()
+    },
     syncNewOrders,
     syncUnresolvedOrders,
     startOrderSyncJob,
+    getSyncState: () => {
+      return { ...syncState }
+    },
   }
 }
+
+export type SyncService = ReturnType<typeof buildDataSync>

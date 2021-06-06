@@ -1,7 +1,8 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { ApolloClient, InMemoryCache } from '@apollo/client'
 import { Switch, Route, useLocation, useHistory } from 'react-router-dom'
-import { Button, Dropdown, Layout, Menu, PageHeader } from 'antd'
+import { Button, Dropdown, Layout, Menu, notification, PageHeader } from 'antd'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 
 const { Header, Sider, Content } = Layout
 
@@ -9,31 +10,58 @@ import { Navigation } from './navigation'
 import { Products } from '../products/products'
 import { ApiClientContext, useBuildApiClient } from '../api/api-client'
 import { Orders } from '../orders/orders'
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
-import Title from 'antd/lib/typography/Title'
+import { Roastings } from '../roasting/roasting'
+import moment from 'moment'
+import { Logger } from '../../shared/logger'
 
 const apolloClient = new ApolloClient({
   uri: '/api/graphql',
   cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'no-cache',
+      errorPolicy: 'ignore',
+    },
+    query: {
+      fetchPolicy: 'no-cache',
+      errorPolicy: 'all',
+    },
+  },
 })
 
 const titleMap: { [key: string]: string } = {
-  '/': 'Domů',
+  '/': 'Pražení',
   '/products': 'Produkty',
-  '/categories': 'Kategorie',
   '/orders': 'Objednávky',
 }
 
 const subTitleMap: { [key: string]: string } = {
-  '/': 'Vítejte zpět',
-  '/products': 'Zde vidíte vše o WooCommerce produktech.',
-  '/categories': 'Zde vidíte vše o WooCommerce kategoriích.',
-  '/orders': 'Zde vidíte vše o WooCommerce objednávkách.',
+  '/': '',
+  '/products': 'Zde vidíte vše o produktech.',
+  '/orders': 'Zde vidíte vše o objednávkách.',
+}
+
+const notifyOrdersAdded = () => {
+  notification.open({
+    message: 'Přibyly nové objednávky',
+  })
+}
+
+const notifySyncError = (message: string) => {
+  notification.error({
+    message: 'Došlo k chybě při synchronizaci',
+    description: message,
+    duration: 0,
+  })
 }
 
 export const Root: React.FunctionComponent = () => {
-  const apiClient = useBuildApiClient(apolloClient)
+  const [lastSync, setLastSync] = useState('')
+  const [syncInProgress, setSyncInProgress] = useState(false)
+  const [productSyncInProgress, setproductSyncInProgress] = useState(false)
+  const [lastSyncDataVersion, setLastSyncDataVersion] = useState(0)
 
+  const apiClient = useBuildApiClient(apolloClient)
   const location = useLocation()
   const history = useHistory()
 
@@ -51,6 +79,36 @@ export const Root: React.FunctionComponent = () => {
   const onBack = useCallback(() => {
     history.push('/')
   }, [history])
+
+  useEffect(() => {
+    apiClient.getSyncState().then((state) => {
+      setLastSync(moment(state.data.sync.lastOrderSyncTime).format('LLL'))
+    })
+    let dataVersion = 0
+    let errorOccured = false
+
+    setInterval(() => {
+      Logger.debug(`Syncing state`)
+      apiClient.getSyncState().then((state) => {
+        setLastSync(moment(state.data.sync.lastOrderSyncTime).format('LLL'))
+        setSyncInProgress(state.data.sync.orderSyncInProgress)
+        setproductSyncInProgress(state.data.sync.productSyncInProgress)
+
+        if (state.data.sync.orderSyncDataVersion !== dataVersion) {
+          dataVersion = state.data.sync.orderSyncDataVersion
+          setLastSyncDataVersion(state.data.sync.orderSyncDataVersion)
+          notifyOrdersAdded()
+        }
+
+        if (state.data.sync.orderSyncError && !errorOccured) {
+          errorOccured = true
+          notifySyncError(
+            state.data.sync?.orderSyncErrorMessage || 'There is no message'
+          )
+        }
+      })
+    }, 5000)
+  }, [apiClient])
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -79,32 +137,32 @@ export const Root: React.FunctionComponent = () => {
                 subTitle={subTitle}
               />
 
-              <Dropdown overlay={menu} placement="bottomLeft">
-                <Button type="primary" shape="circle" icon={<UserOutlined />} />
-              </Dropdown>
+              <span>
+                <span style={{ marginRight: 25 }}>
+                  Objednávky synchronizovány: {lastSync}
+                </span>
+                {syncInProgress && (
+                  <span style={{ marginRight: 25 }}>Syncing...</span>
+                )}
+                <Dropdown overlay={menu} placement="bottomLeft">
+                  <Button
+                    type="primary"
+                    shape="circle"
+                    icon={<UserOutlined />}
+                  />
+                </Dropdown>
+              </span>
             </Header>
             <Content>
               <Switch>
                 <Route path="/products">
-                  <Products />
+                  <Products syncInProgress={productSyncInProgress} />
                 </Route>
                 <Route path="/Orders">
                   <Orders />
                 </Route>
                 <Route path="/">
-                  <Title
-                    level={4}
-                    style={{
-                      height: 72,
-                      margin: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      paddingLeft: 25,
-                    }}
-                  >
-                    Vítejte
-                  </Title>
+                  <Roastings />
                 </Route>
               </Switch>
             </Content>

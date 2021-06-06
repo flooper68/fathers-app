@@ -1,5 +1,12 @@
+
+import DataLoader from 'dataloader'
+
 import { ProductDocument, ProductModel } from '../../models/product.'
 import { getRoastedCoffee } from './roasted-coffee-resolvers'
+
+const productLoader = new DataLoader(async (keys: readonly number[]) => {
+  return await ProductModel.find({ id: { $in: keys as number[] } })
+})
 
 const mapProduct = (item: ProductDocument) => ({
   id: item.id,
@@ -22,11 +29,11 @@ const mapProduct = (item: ProductDocument) => ({
 })
 
 export const getProduct = async (productId: number) => {
-  const item = await ProductModel.findOne({ id: productId })
+  const item = await productLoader.load(productId)
   return mapProduct(item)
 }
 
 export const getProducts = async () => {
-  const products = await ProductModel.find()
+  const products = await ProductModel.find().sort({ id: -1 })
   return products.map(mapProduct)
 }

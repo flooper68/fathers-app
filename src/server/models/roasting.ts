@@ -15,6 +15,17 @@ const roastingSchema = new Schema<RoastingDocument>({
     default: ROASTING_SCHEMA_VERSION,
     required: true,
   },
+  dateCreated: {
+    type: String,
+    required: true,
+    default: () => new Date().toISOString(),
+  },
+  datePlanningClosed: {
+    type: String,
+  },
+  dateFinished: {
+    type: String,
+  },
   status: {
     type: String,
     enum: RoastingStatus,

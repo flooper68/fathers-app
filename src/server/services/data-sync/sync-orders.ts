@@ -1,30 +1,9 @@
+import { RoastingService } from '../roasting-service'
 import { Logger } from '../../../shared/logger'
-import { GreenCoffee } from '../../../shared/types/green-coffee'
-import {
-  OrderStatus,
-  WooCommerceOrderResponse,
-  Order,
-} from '../../../shared/types/order'
-import { RoastedCoffee } from '../../../shared/types/roasted-coffee'
-import {
-  getEmptyRoastingObject,
-  getNextPlannedRoasting,
-  mergeRoastingData,
-} from '../../domain/roasting'
-import {
-  RoastedCoffeeMap,
-  GreenCoffeeMap,
-} from '../../domain/roasting-settings'
+import { WooCommerceOrderResponse, Order } from '../../../shared/types/order'
 import { OrderModel } from '../../models/order'
-import { ProductModel } from '../../models/product.'
 import { runPromisesInSequence } from '../../promise-utils'
 import { WooCommerceClient } from '../woocommerce'
-
-const READY_FOR_ROASTING_STATUSES = [
-  OrderStatus.PENDING,
-  OrderStatus.PROCESSING,
-  OrderStatus.COMPLETED,
-]
 
 const mapOrder = (order: WooCommerceOrderResponse): Order => {
   return {
@@ -55,9 +34,9 @@ const syncOrder = async (order: Order) => {
   if (dbEntity) {
     Logger.debug(`Order ${order.id} exists`)
 
-    if (dbEntity.dateModified === order.dateModified) {
-      Logger.info(`Order ${order.id} was modified, updating status`)
-      await dbEntity.updateOne({ status: order.status })
+    if (dbEntity.dateModified !== order.dateModified) {
+      Logger.info(`Order ${order.id} was modified, updating`)
+      await dbEntity.updateOne(order)
       return
     } else {
       Logger.debug(`Order ${order.id} was not modified`)
@@ -194,7 +173,10 @@ const processOrderForRoasting = async (order: Order) => {
   Logger.info(`Updated roasting ${plannedRoasting.id} with order ${order.id}`)
 }
 
-export const buildSyncNewOrders = (client: WooCommerceClient) => async () => {
+export const buildSyncNewOrders = (
+  client: WooCommerceClient,
+  roastingService: RoastingService
+) => async () => {
   const start = Date.now()
   Logger.info('Syncing new orders')
 
@@ -203,19 +185,25 @@ export const buildSyncNewOrders = (client: WooCommerceClient) => async () => {
 
   Logger.info(`Fetched ${result.totalCount} orders`)
 
+  let changeCounter = 0
   const handleNewOrder = async (order: Order) => {
     await syncOrder(order)
-    await processOrderForRoasting(order)
+    const addedToRoasting = await roastingService.processOrderForRoasting(order)
+    if (addedToRoasting) {
+      changeCounter++
+    }
   }
 
   await runPromisesInSequence(orders, handleNewOrder)
 
   const stop = Date.now()
   Logger.info(`Syncing orders finished, took ${stop - start} ms`)
+  return changeCounter
 }
 
 export const buildSyncUnresolvedOrders = (
-  client: WooCommerceClient
+  client: WooCommerceClient,
+  roastingService: RoastingService
 ) => async () => {
   const start = Date.now()
   Logger.info('Syncing unresolved orders')
@@ -224,14 +212,19 @@ export const buildSyncUnresolvedOrders = (
   const orders: Order[] = result.rows.map(mapOrder)
 
   Logger.info(`Fetched ${result.totalCount} orders`)
+  let changeCounter = 0
 
   const handleOrder = async (order: Order) => {
     await syncOrder(order)
-    await processOrderForRoasting(order)
+    const addedToRoasting = await roastingService.processOrderForRoasting(order)
+    if (addedToRoasting) {
+      changeCounter++
+    }
   }
 
   await runPromisesInSequence(orders, handleOrder)
 
   const stop = Date.now()
   Logger.info(`Syncing orders finished, took ${stop - start} ms`)
+  return changeCounter
 }

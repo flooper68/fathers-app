@@ -1,5 +1,12 @@
+
+import DataLoader from 'dataloader'
+
 import { OrderDocument, OrderModel } from '../../models/order'
 import { getProduct } from './product-resolvers'
+
+const orderLoader = new DataLoader(async (keys: readonly number[]) => {
+  return await OrderModel.find({ id: { $in: keys as number[] } })
+})
 
 const mapOrder = (item: OrderDocument) => {
   return {
@@ -25,7 +32,7 @@ const mapOrder = (item: OrderDocument) => {
 }
 
 export const getOrder = async (id: number) => {
-  const item = await OrderModel.findOne({ id })
+  const item = await orderLoader.load(id)
   return mapOrder(item)
 }
 
