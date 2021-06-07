@@ -101,6 +101,12 @@ export const appSchema = buildSchema(`
         lineItems: [LineItem]!
     }
 
+    type OrderList {
+        page: Int
+        pageCount: Int
+        rows: [Order]!
+    }
+
     type Sync {
         lastOrderSyncTime: String!
         orderSyncInProgress: Boolean!
@@ -120,12 +126,12 @@ export const appSchema = buildSchema(`
     type RootQuery {
         greenCoffees: [GreenCoffee]!
         roastedCoffees: [RoastedCoffee]!
-        orders: [Order]!
+        orders(page: Int): OrderList
         products: [Product]!
         roastings: [Roasting]!
-
         sync: Sync
     }
+
 
     type RooMutation {
         finishRoasting: SuccessResult
