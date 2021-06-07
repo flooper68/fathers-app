@@ -1,3 +1,4 @@
+import { OrderLineItem } from './../../shared/types/order'
 import { Logger } from './../../shared/logger'
 import { RoastingStatus } from '../../shared/types/roasting'
 import { RoastingModel } from '../models/roasting'
@@ -189,7 +190,7 @@ const getItemRoastingData = (
   return roastingData
 }
 
-const mapLineItemForRoasting = async (lineItem) => {
+const mapLineItemForRoasting = async (lineItem: OrderLineItem) => {
   const product = await ProductModel.findOne({
     id: lineItem.productId,
   })
@@ -215,6 +216,10 @@ const mapLineItemForRoasting = async (lineItem) => {
 
   if (!variation) {
     throw new Error('Missing product variation')
+  }
+
+  if (!variation.weight) {
+    throw new Error('Variation is missing weight')
   }
 
   const totalWeight = lineItem.quantity * variation.weight
@@ -243,7 +248,9 @@ const processOrderForRoasting = async (order: Order) => {
     order.lineItems.map(mapLineItemForRoasting)
   )
 
-  const roastableItems = itemsRoastingData.filter((item) => item !== undefined)
+  const roastableItems = itemsRoastingData.filter(
+    (item) => item !== undefined
+  ) as RoastingObject[]
 
   if (roastableItems.length === 0) {
     Logger.info(
@@ -252,7 +259,7 @@ const processOrderForRoasting = async (order: Order) => {
     return false
   }
 
-  const orderRoastingData = roastableItems.reduce(
+  const orderRoastingData = roastableItems.reduce<RoastingObject>(
     mergeRoastingData,
     getEmptyRoastingObject()
   )

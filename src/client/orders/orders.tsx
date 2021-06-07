@@ -1,7 +1,8 @@
 import { Button, Descriptions, List, Modal, Table } from 'antd'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
+import { Logger } from '../../shared/logger'
 import { useApiClient } from '../api/api-client'
 import { OrderListItem } from '../api/graphql-queries'
 
@@ -32,8 +33,12 @@ const columns = [
   },
 ]
 
+const PAGE_SIZE = 20
+
 export const Orders = () => {
   const [rows, setRows] = useState<OrderListItem[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageCount, setPageCount] = useState(1)
   const [modalOpened, setModalOpened] = useState(false)
   const [modalContext, setModalContext] = useState<OrderListItem | null>(null)
 
@@ -47,9 +52,21 @@ export const Orders = () => {
     setModalOpened(false)
   }
 
+  const fetchMore = useCallback(async () => {
+    if (currentPage + 1 > pageCount) {
+      return
+    }
+    Logger.debug(`Fetching more rows, page ${currentPage + 1}`)
+    const result = await apiClient.getOrders(currentPage + 1)
+    setRows((state) => [...state, ...result.data.orders.rows])
+    setPageCount(result.data.orders.pageCount)
+    setCurrentPage((state) => state + 1)
+  }, [apiClient, currentPage, pageCount])
+
   useEffect(() => {
-    apiClient.getOrders().then((result) => {
-      setRows(result.data.orders)
+    apiClient.getOrders(1).then((result) => {
+      setRows(result.data.orders.rows)
+      setPageCount(result.data.orders.pageCount)
     })
   }, [apiClient])
 
@@ -70,8 +87,17 @@ export const Orders = () => {
         columns={columns}
         dataSource={rows}
         style={{ width: '100%', height: '100%', overflow: 'auto' }}
-        pagination={false}
         sticky={true}
+        pagination={{
+          position: ['topLeft'],
+          showSizeChanger: false,
+          pageSize: PAGE_SIZE,
+          onChange: (page) => {
+            if (page + 3 > rows.length / PAGE_SIZE) {
+              fetchMore()
+            }
+          },
+        }}
         onRow={(record: OrderListItem) => {
           return {
             onClick: () => {

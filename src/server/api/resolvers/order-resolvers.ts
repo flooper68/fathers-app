@@ -36,7 +36,6 @@ export const getOrder = async (id: number) => {
 }
 
 export const getOrders = async (params: { page: number }) => {
-  console.log(params.page)
   const page = params.page || 1
   const PAGE_SIZE = 100
 
