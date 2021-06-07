@@ -38,6 +38,12 @@ export const GreenCoffeeMap: Record<number, GreenCoffee> = {
     batchWeight: 10,
     roastingLossFactor: 0.9,
   },
+  [7]: {
+    id: 7,
+    name: 'Kenya - Gititu AA',
+    batchWeight: 10,
+    roastingLossFactor: 0.9,
+  },
 }
 
 export const BATCH_SIZE = 2
@@ -53,6 +59,7 @@ export const RoastedCoffeeMap: Record<number, RoastedCoffee> = {
   [8]: { id: 8, name: 'Brazilie - Manga larga Filtr', greenCoffeeId: 5 },
   [9]: { id: 9, name: 'Brazilie - Manga larga Espresso', greenCoffeeId: 5 },
   [10]: { id: 10, name: 'Brazilie - Cafeina Espresso', greenCoffeeId: 6 },
+  [11]: { id: 11, name: 'Kenya - Gititu AA Filtr', greenCoffeeId: 7 },
 }
 
 //This will be in Product as attribute
@@ -67,4 +74,5 @@ export const RoastedCoffeeProductMap: Record<number, number> = {
   [12955]: 8, // Brazilie - Manga larga Filtr
   [12930]: 9, // Brazilie - Manga larga Espresso
   [12994]: 10, // Brazilie - Cafeina Espresso
+  [13477]: 11, // Kenya - Gititu AA Filtr
 }
