@@ -1,4 +1,3 @@
-
 import DataLoader from 'dataloader'
 
 import { ProductDocument, ProductModel } from '../../models/product.'
@@ -25,7 +24,8 @@ const mapProduct = (item: ProductDocument) => ({
   })),
   variations: item.variations,
   roastedCoffeeId: item.roastedCoffeeId,
-  roastedCoffee: () => getRoastedCoffee(item.roastedCoffeeId),
+  roastedCoffee: () =>
+    item.roastedCoffeeId ? getRoastedCoffee(item.roastedCoffeeId) : undefined,
 })
 
 export const getProduct = async (productId: number) => {
