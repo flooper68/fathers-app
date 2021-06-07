@@ -76,24 +76,28 @@ export interface ProductListItem {
 }
 
 export const OrdersListQuery = gql`
-  query GetOrders {
-    orders {
-      id
-      number
-      status
-      dateCreated
-      roastingId
-      lineItems {
-        name
-        quantity
-        variationId
-        product {
-          categories {
-            name
-          }
-          variations {
-            id
-            weight
+  query GetOrders($page: Int!) {
+    orders(page: $page) {
+      page
+      pageCount
+      rows {
+        id
+        number
+        status
+        dateCreated
+        roastingId
+        lineItems {
+          name
+          quantity
+          variationId
+          product {
+            categories {
+              name
+            }
+            variations {
+              id
+              weight
+            }
           }
         }
       }
@@ -121,6 +125,12 @@ export interface OrderListItem {
       }[]
     }
   }[]
+}
+
+export interface OrderListResult {
+  page: number
+  pageCount: number
+  rows: OrderListItem[]
 }
 
 export const RoastingListQuery = gql`

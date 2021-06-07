@@ -1,4 +1,3 @@
-
 import DataLoader from 'dataloader'
 
 import { OrderDocument, OrderModel } from '../../models/order'
@@ -36,7 +35,20 @@ export const getOrder = async (id: number) => {
   return mapOrder(item)
 }
 
-export const getOrders = async () => {
-  const entities = await OrderModel.find().sort({ number: -1 })
-  return entities.map(mapOrder)
+export const getOrders = async (params: { page: number }) => {
+  const page = params.page || 1
+  const PAGE_SIZE = 100
+
+  const entities = await OrderModel.find()
+    .sort({ number: -1 })
+    .skip((page - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE)
+
+  const count = await OrderModel.estimatedDocumentCount()
+
+  return {
+    page,
+    pageCount: Math.ceil(count / PAGE_SIZE),
+    rows: entities.map(mapOrder),
+  }
 }

@@ -10,7 +10,17 @@ export const buildDataSync = (
   client: WooCommerceClient,
   roastingService: RoastingService
 ) => {
-  let syncState = {
+  let syncState: {
+    lastOrderSyncTime: string
+    orderSyncInProgress: boolean
+    orderSyncDataVersion: number
+    orderSyncErrorMessage?: string
+    orderSyncError?: boolean
+    productSyncInProgress: boolean
+    productSyncDataVersion: number
+    productSyncError?: boolean
+    productSyncErrorMessage?: string
+  } = {
     lastOrderSyncTime: new Date().toISOString(),
     orderSyncInProgress: false,
     orderSyncDataVersion: 0,

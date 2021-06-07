@@ -16,5 +16,6 @@
     "strictPropertyInitialization": false,
     "esModuleInterop": true
   },
-  "include": ["src/server", "src/shared", "scripts"]
+  "include": ["src/server", "src/shared", "scripts"],
+  "exclude": ["src/client"]
 }

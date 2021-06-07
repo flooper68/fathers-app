@@ -18,6 +18,5 @@
     "baseUrl": "src",
     "strictPropertyInitialization": false
   },
-  "include": ["src"],
-  "exclude": ["src/server"]
+  "include": ["src"]
 }

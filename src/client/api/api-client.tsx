@@ -6,7 +6,6 @@ import {
   OrdersListQuery,
   ProductListItem,
   ProductListQuery,
-  OrderListItem,
   RoastingListItem,
   RoastingListQuery,
   SyncState,
@@ -15,6 +14,7 @@ import {
   FinishRoastingMutation,
   ClosePlanningMutation,
   SynchronizeProductsMutation,
+  OrderListResult,
 } from './graphql-queries'
 
 export const useBuildApiClient = (
@@ -28,13 +28,17 @@ export const useBuildApiClient = (
     })
   }, [client])
 
-  const getOrders = useCallback(() => {
-    return client.query<{
-      orders: OrderListItem[]
-    }>({
-      query: OrdersListQuery,
-    })
-  }, [client])
+  const getOrders = useCallback(
+    (page: number) => {
+      return client.query<{
+        orders: OrderListResult
+      }>({
+        query: OrdersListQuery,
+        variables: { page },
+      })
+    },
+    [client]
+  )
 
   const getRoastings = useCallback(() => {
     return client.query<{
