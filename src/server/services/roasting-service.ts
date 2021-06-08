@@ -10,7 +10,7 @@ import { ProductModel } from '../models/product.'
 import { GreenCoffeeMap, RoastedCoffeeMap } from '../roasting-settings'
 
 const READY_FOR_ROASTING_STATUSES = [
-  OrderStatus.PENDING,
+  OrderStatus.ON_HOLD,
   OrderStatus.PROCESSING,
   OrderStatus.COMPLETED,
 ]
