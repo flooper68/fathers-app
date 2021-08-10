@@ -38,7 +38,7 @@ mongoose
         })
       );
 
-      // await syncService.startOrderSyncJob()
+      await syncService.startOrderSyncJob();
     });
   })
 
