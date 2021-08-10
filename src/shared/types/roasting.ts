@@ -1,3 +1,21 @@
+import { GreenCoffee } from './green-coffee';
+
+export interface Roasting {
+  _id: string;
+  roastingDate: string;
+  status: RoastingStatus;
+  orders: number[];
+  greenCoffeeUsed: GreenCoffee[];
+  finishedBatches: {
+    roastedCoffeeId: number;
+    amount: number;
+  }[];
+  realYield: {
+    roastedCoffeeId: number;
+    weight: number;
+  }[];
+}
+
 export enum RoastingStatus {
   FINISHED = 'FINISHED',
   IN_PROGRESS = 'IN_PROGRESS',
@@ -5,31 +23,18 @@ export enum RoastingStatus {
 }
 
 export interface RoastingGreenCoffee {
-  id: number
-  weight: number
-  name: string
-  batchWeight: number
-  roastingLossFactor: number
+  id: number;
+  weight: number;
+  name: string;
+  batchWeight: number;
+  roastingLossFactor: number;
 }
 
 export interface RoastingRoastedCoffee {
-  id: number
-  name: string
-  numberOfBatches: number
-  finishedBatches: number
-  weight: number
-  realYield: number
-}
-
-export interface Roasting {
-  id: string
-  dateCreated: string
-  datePlanningClosed: string
-  dateFinished: string
-  schemaVersion: number
-  status: RoastingStatus
-  greenCoffee: RoastingGreenCoffee[]
-  roastedCoffee: RoastingRoastedCoffee[]
-  totalWeight: number
-  orders: number[]
+  id: number;
+  name: string;
+  numberOfBatches: number;
+  finishedBatches: number;
+  weight: number;
+  realYield: number;
 }

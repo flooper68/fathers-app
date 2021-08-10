@@ -1,11 +1,11 @@
-import { Button, Card, Descriptions, Modal, Spin, Table } from 'antd'
-import Meta from 'antd/lib/card/Meta'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Button, Card, Descriptions, Modal, Spin, Table } from 'antd';
+import Meta from 'antd/lib/card/Meta';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { useApiClient } from '../api/api-client'
-import { ProductListItem } from '../api/graphql-queries'
-import { getProductSyncInProgress, syncActions } from '../root/sync'
-import { useAppDispatch, useAppSelector } from '../store'
+import { useApiClient } from '../api/api-client';
+import { ProductListItem } from '../api/queries/get-products-query';
+import { getProductSyncInProgress, syncActions } from '../root/sync';
+import { useAppDispatch, useAppSelector } from '../store';
 
 const columns = [
   {
@@ -37,40 +37,42 @@ const columns = [
       </span>
     ),
   },
-]
+];
 
 export const Products = () => {
-  const productSyncInProgress = useAppSelector(getProductSyncInProgress)
+  const productSyncInProgress = useAppSelector(getProductSyncInProgress);
 
-  const [rows, setRows] = useState<ProductListItem[]>([])
-  const [modalOpened, setModalOpened] = useState(false)
-  const [modalContext, setModalContext] = useState<ProductListItem | null>(null)
+  const [rows, setRows] = useState<ProductListItem[]>([]);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [modalContext, setModalContext] = useState<ProductListItem | null>(
+    null
+  );
 
-  const { syncProducts, getProducts } = useApiClient()
-  const dispatch = useAppDispatch()
+  const { syncProducts, getProducts } = useApiClient();
+  const dispatch = useAppDispatch();
 
   const handleOk = () => {
-    setModalOpened(false)
-  }
+    setModalOpened(false);
+  };
 
   const handleCancel = () => {
-    setModalOpened(false)
-  }
+    setModalOpened(false);
+  };
 
   const synchronize = useCallback(() => {
     dispatch(
       syncActions.updateProductSyncState({
         productSyncInProgress: true,
       })
-    )
-    syncProducts()
-  }, [dispatch, syncProducts])
+    );
+    syncProducts();
+  }, [dispatch, syncProducts]);
 
   useEffect(() => {
     getProducts().then((result) => {
-      setRows(result.data.products)
-    })
-  }, [getProducts, dispatch])
+      setRows(result.data.products);
+    });
+  }, [getProducts, dispatch]);
 
   return (
     <div
@@ -106,10 +108,10 @@ export const Products = () => {
         onRow={(record: ProductListItem) => {
           return {
             onClick: () => {
-              setModalOpened(true)
-              setModalContext(record)
+              setModalOpened(true);
+              setModalContext(record);
             },
-          }
+          };
         }}
         rowKey="id"
         columns={columns}
@@ -164,9 +166,9 @@ export const Products = () => {
             >
               <Meta title={item.name} />
             </Card>
-          )
+          );
         })}
       </Modal>
     </div>
-  )
-}
+  );
+};

@@ -1,15 +1,15 @@
-import { Button, Descriptions, List, Modal, Table } from 'antd'
-import moment from 'moment'
-import React, { useState } from 'react'
+import { Button, Descriptions, List, Modal, Table, DatePicker } from 'antd';
+import moment from 'moment';
+import React, { useCallback, useState } from 'react';
 
-import { RoastingStatus } from '../../shared/types/roasting'
-import { RoastingListItem } from '../api/graphql-queries'
+import { RoastingStatus } from '../../shared/types/roasting';
+import { RoastingListItem } from '../api/queries/get-roastings-query';
 
 const RoastingStatusCopywritingMap = {
   [RoastingStatus.FINISHED]: 'Dokončeno',
   [RoastingStatus.IN_PLANNING]: 'Plánováno',
   [RoastingStatus.IN_PROGRESS]: 'Probíhá',
-}
+};
 
 const columns = [
   {
@@ -21,64 +21,54 @@ const columns = [
     ),
   },
   {
-    title: 'Váha',
-    dataIndex: 'totalWeight',
-    key: 'totalWeight',
-  },
-  {
-    title: 'Vytvořeno',
-    dataIndex: 'dateCreated',
-    key: 'dateCreated',
-    render: (dateCreated: string) => (
-      <span>{moment(dateCreated).format('LLL')}</span>
+    title: 'Datum',
+    dataIndex: 'roastingDate',
+    key: 'roastingDate',
+    render: (roastingDate: string) => (
+      <span>{moment(roastingDate).format('LLL')}</span>
     ),
   },
-  {
-    title: 'Ukončeno plánování',
-    dataIndex: 'datePlanningClosed',
-    key: 'datePlanningClosed',
-    render: (datePlanningClosed?: string) => (
-      <span>
-        {datePlanningClosed && moment(datePlanningClosed).format('LLL')}
-      </span>
-    ),
-  },
-  {
-    title: 'Dokončeno',
-    dataIndex: 'dateFinished',
-    key: 'dateFinished',
-    render: (dateFinished?: string) => (
-      <span>{dateFinished && moment(dateFinished).format('LLL')}</span>
-    ),
-  },
-]
+];
 
-export const RoastingsList = (props: { roastings: RoastingListItem[] }) => {
-  const { roastings } = props
+export const RoastingsList = (props: {
+  roastings: RoastingListItem[];
+  onCreateRoasting: (date: string) => void;
+}) => {
+  const { roastings, onCreateRoasting } = props;
 
-  const [modalOpened, setModalOpened] = useState(false)
+  const [createDate, setCreateDate] = useState<string | null>(null);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [createModalOpened, setCreateModalOpened] = useState(false);
   const [modalContext, setModalContext] = useState<RoastingListItem | null>(
     null
-  )
+  );
 
-  const handleOk = () => {
-    setModalOpened(false)
-  }
-
-  const handleCancel = () => {
-    setModalOpened(false)
-  }
+  const createRoasting = useCallback(() => {
+    if (!createDate) {
+      throw new Error(`Missing roasting date for new roasting`);
+    }
+    onCreateRoasting(createDate);
+    setCreateModalOpened(false);
+  }, [onCreateRoasting, createDate]);
 
   return (
     <div>
+      <Button
+        type="primary"
+        style={{ marginBottom: 16 }}
+        onClick={() => setCreateModalOpened(true)}
+      >
+        Nové pražení
+      </Button>
+
       <Table
         onRow={(record: RoastingListItem) => {
           return {
             onClick: () => {
-              setModalOpened(true)
-              setModalContext(record)
+              setModalOpened(true);
+              setModalContext(record);
             },
-          }
+          };
         }}
         rowKey="id"
         columns={columns}
@@ -89,44 +79,68 @@ export const RoastingsList = (props: { roastings: RoastingListItem[] }) => {
       />
 
       <Modal
-        title={`Pražení ${modalContext?.id}`}
-        visible={modalOpened}
-        onOk={handleOk}
-        onCancel={handleCancel}
+        title={`Vytvořit nové pražení`}
+        visible={createModalOpened}
+        onOk={() => setCreateModalOpened(false)}
+        onCancel={() => setCreateModalOpened(false)}
         centered
-        width={`80vw`}
-        bodyStyle={{ maxHeight: '80vh', overflow: 'auto' }}
         footer={
           <>
-            <Button key="back" type="primary" onClick={handleCancel}>
+            <Button
+              key="back"
+              type="primary"
+              disabled={!createDate}
+              onClick={createRoasting}
+            >
               Ok
             </Button>
           </>
         }
       >
-        <Descriptions bordered size="small" column={1}>
-          <Descriptions.Item label="Id">{modalContext?.id}</Descriptions.Item>
+        <DatePicker
+          placeholder="Vybrat datum"
+          style={{ width: 300 }}
+          onChange={(value) => setCreateDate(value?.toISOString() || null)}
+        />
+      </Modal>
+
+      <Modal
+        title={`Pražení ${moment(modalContext?.roastingDate).format('LL')}`}
+        visible={modalOpened}
+        onOk={() => setModalOpened(false)}
+        onCancel={() => setModalOpened(false)}
+        centered
+        width={`80vw`}
+        bodyStyle={{ maxHeight: '80vh', overflow: 'auto' }}
+        footer={
+          <>
+            <Button
+              key="back"
+              type="primary"
+              onClick={() => setModalOpened(false)}
+            >
+              Ok
+            </Button>
+          </>
+        }
+      >
+        <Descriptions
+          bordered
+          size="small"
+          column={1}
+          style={{ marginBottom: 25 }}
+        >
           <Descriptions.Item label="Status">
-            {modalContext?.status}
+            {modalContext?.status &&
+              RoastingStatusCopywritingMap[modalContext?.status]}
           </Descriptions.Item>
         </Descriptions>
-        <h2>Green coffee</h2>
+        <h3>Pražená káva</h3>
         <List
           itemLayout="horizontal"
-          dataSource={modalContext?.greenCoffee}
-          renderItem={(item) => (
-            <List.Item>
-              <List.Item.Meta
-                title={<a>{item.name}</a>}
-                description={`Množství ${item.weight.toFixed(2)} kg`}
-              />
-            </List.Item>
+          dataSource={modalContext?.roastedCoffee.filter(
+            (item) => !!item.numberOfBatches
           )}
-        />
-        <h2>Roasted coffee</h2>
-        <List
-          itemLayout="horizontal"
-          dataSource={modalContext?.roastedCoffee}
           renderItem={(item) => (
             <List.Item>
               <List.Item.Meta
@@ -140,5 +154,5 @@ export const RoastingsList = (props: { roastings: RoastingListItem[] }) => {
         />
       </Modal>
     </div>
-  )
-}
+  );
+};

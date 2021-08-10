@@ -1,33 +1,34 @@
-import { GreenCoffeeMap, RoastedCoffeeMap } from '../../roasting-settings'
-
+import { findRoastedCoffee } from './../../roasting/repositories/roasted-coffee-repository';
+import {
+  findOneGreenCoffee,
+  findGreenCoffee,
+} from './../../roasting/repositories/green-coffee-repository';
 
 export const getGreenCoffee = async (id: number) => {
-  const greenCoffee = Object.values(GreenCoffeeMap).find(
-    (item) => item.id === id
-  )
+  const greenCoffee = await findOneGreenCoffee({ where: { id } });
 
   return {
     ...greenCoffee,
     roastedCoffees: () => getGreenCoffeesRoastedCoffees(id),
-  }
-}
+  };
+};
 
 export const getGreenCoffeesRoastedCoffees = async (greenCoffeeId: number) => {
-  return Object.values(RoastedCoffeeMap)
-    .filter((item) => item.greenCoffeeId === greenCoffeeId)
-    .map((coffee) => {
-      return {
-        ...coffee,
-        greenCoffee: () => getGreenCoffee(coffee.greenCoffeeId),
-      }
-    })
-}
+  const rows = await findRoastedCoffee({ where: { greenCoffeeId } });
+  return rows.map((coffee) => {
+    return {
+      ...coffee,
+      greenCoffee: () => getGreenCoffee(coffee.greenCoffeeId),
+    };
+  });
+};
 
 export const getGreenCoffees = async () => {
-  return Object.values(GreenCoffeeMap).map((coffee) => {
+  const rows = await findGreenCoffee();
+  return rows.map((coffee) => {
     return {
       ...coffee,
       roastedCoffees: () => getGreenCoffeesRoastedCoffees(coffee.id),
-    }
-  })
-}
+    };
+  });
+};

@@ -1,64 +1,122 @@
+import { findGreenCoffee } from '../../roasting/repositories/green-coffee-repository';
+import { reportRealYieldUseCase } from '../../roasting/use-cases/report-real-yield';
+import { selectOrdersRoastingUseCase } from '../../roasting/use-cases/select-orders-roasting';
+import { startRoastingUseCase } from '../../roasting/use-cases/start-roasting';
+import { buildRoastingRepository } from '../../roasting/repositories/roasting-repository';
+import { Logger } from '../../../shared/logger';
+import { createRoastingUseCase } from '../../roasting/use-cases/create-roasting';
+import { finishRoastingUseCase } from '../../roasting/use-cases/finish-roasting';
+import { getRoastingsProjection } from '../../roasting/projections/roasting-projection';
+import { finishBatchUseCase } from '../../roasting/use-cases/finish-batch';
 
-import { Logger } from './../../../shared/logger'
-import { RoastingService } from '../../services/roasting-service'
-import { RoastingDocument } from './../../models/roasting'
-import { RoastingModel } from '../../models/roasting'
-import { getOrder } from './order-resolvers'
+export const buildRoastingResolvers = () => {
+  const repository = buildRoastingRepository();
 
-const mapRoasting = (item: RoastingDocument) => {
-  return {
-    id: item.id,
-    dateCreated: item.dateCreated,
-    datePlanningClosed: item.datePlanningClosed,
-    dateFinished: item.dateFinished,
+  const createRoastingResolver = async (args: { date: string }) => {
+    try {
+      await createRoastingUseCase(args.date, repository);
+      return {
+        success: true,
+      };
+    } catch (e) {
+      Logger.error(`Error handling createRoasting mutation`, e);
+      return {
+        success: false,
+      };
+    }
+  };
 
-    status: item.status,
-    totalWeight: item.totalWeight,
-    orderIds: item.orders,
-    orders: () => Promise.all(item.orders.map((id) => getOrder(id))),
-    greenCoffee: item.greenCoffee,
-    roastedCoffee: item.roastedCoffee,
-  }
-}
+  const selectOrdersRoastingResolver = async (args: {
+    orderId: number;
+    roastingId: string;
+  }) => {
+    try {
+      await selectOrdersRoastingUseCase(
+        args.roastingId,
+        args.orderId,
+        repository
+      );
+      return {
+        success: true,
+      };
+    } catch (e) {
+      Logger.error(`Error handling addOrderToRoasting mutation`, e);
+      return {
+        success: false,
+      };
+    }
+  };
 
-const getRoastings = async () => {
-  const entities = await RoastingModel.find().sort({ id: -1 })
-  return entities.map(mapRoasting)
-}
+  const startRoastingResolver = async () => {
+    try {
+      await startRoastingUseCase(repository, findGreenCoffee);
+      return {
+        success: true,
+      };
+    } catch (e) {
+      Logger.error(`Error handling startRoasting mutation`, e);
+      return {
+        success: false,
+      };
+    }
+  };
 
-export const buildRoastingResolvers = (roastingService: RoastingService) => {
+  const finishBatchResolver = async (args: { roastedCoffeeId: number }) => {
+    try {
+      await finishBatchUseCase(args.roastedCoffeeId, repository);
+      return {
+        success: true,
+      };
+    } catch (e) {
+      Logger.error(`Error handling finishBatch mutation`, e);
+      return {
+        success: false,
+      };
+    }
+  };
+
+  const reportRealYieldResolver = async (args: {
+    roastedCoffeeId: number;
+    weight: number;
+  }) => {
+    try {
+      await reportRealYieldUseCase(
+        args.roastedCoffeeId,
+        args.weight,
+        repository
+      );
+      return {
+        success: true,
+      };
+    } catch (e) {
+      Logger.error(`Error handling finishBatch mutation`, e);
+      return {
+        success: false,
+      };
+    }
+  };
+
   const finishRoastingResolver = async () => {
     try {
-      await roastingService.finishRoasting()
+      await finishRoastingUseCase(repository);
       return {
         success: true,
-      }
+      };
     } catch (e) {
-      Logger.error(`Error handling finish roasting mutation`, e)
+      Logger.error(`Error handling finishRoasting mutation`, e);
       return {
         success: false,
-      }
+      };
     }
-  }
-
-  const closePlanningResolver = async () => {
-    try {
-      await roastingService.closeRoastingPlanning()
-      return {
-        success: true,
-      }
-    } catch (e) {
-      Logger.error(`Error handling close planning mutation`, e)
-      return {
-        success: false,
-      }
-    }
-  }
+  };
 
   return {
+    createRoastingResolver,
+    selectOrdersRoastingResolver,
+    startRoastingResolver,
+    finishBatchResolver,
     finishRoastingResolver,
-    closePlanningResolver,
-    getRoastings,
-  }
-}
-
+    reportRealYieldResolver,
+    getRoastingsResolver: getRoastingsProjection(repository),
+  };
+};

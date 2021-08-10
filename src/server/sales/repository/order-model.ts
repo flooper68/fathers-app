@@ -1,7 +1,7 @@
-import moongose, { Schema } from 'mongoose'
+import moongose, { Schema } from 'mongoose';
 
-import { Order } from '../../shared/types/order'
-import { DocumentWithSchemaVersion } from './../types/general'
+import { Order } from '../../../shared/types/order';
+import { DocumentWithSchemaVersion } from '../../types/general';
 
 export interface OrderDocument
   extends Omit<Order, 'id'>,
@@ -25,6 +25,6 @@ const orderSchema = new Schema<OrderDocument>({
       quantity: { type: Number, required: true },
     }),
   ],
-})
+});
 
-export const OrderModel = moongose.model<OrderDocument>('Order', orderSchema)
+export const OrderModel = moongose.model<OrderDocument>('Order', orderSchema);

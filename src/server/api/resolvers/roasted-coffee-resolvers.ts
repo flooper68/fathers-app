@@ -1,23 +1,27 @@
-import { RoastedCoffeeMap } from '../../roasting-settings'
-import { getGreenCoffee } from './green-coffee-resolvers'
+import {
+  findRoastedCoffee,
+  findOneRoastedCoffee,
+} from './../../roasting/repositories/roasted-coffee-repository';
+import { getGreenCoffee } from './green-coffee-resolvers';
 
 export const getRoastedCoffee = async (id: number) => {
-  const item = Object.values(RoastedCoffeeMap).find((item) => item.id === id)
+  const item = await findOneRoastedCoffee({ where: { id } });
 
   if (!item) {
-    return undefined
+    return undefined;
   }
   return {
     ...item,
     greenCoffee: () => getGreenCoffee(item.greenCoffeeId),
-  }
-}
+  };
+};
 
 export const getRoastedCoffees = async () => {
-  return Object.values(RoastedCoffeeMap).map((coffee) => {
+  const rows = await findRoastedCoffee();
+  return rows.map((coffee) => {
     return {
       ...coffee,
       greenCoffee: () => getGreenCoffee(coffee.greenCoffeeId),
-    }
-  })
-}
+    };
+  });
+};

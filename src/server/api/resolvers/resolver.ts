@@ -1,16 +1,12 @@
-import { getOrders } from './order-resolvers'
-import { getProducts } from './product-resolvers'
-import { getGreenCoffees } from './green-coffee-resolvers'
-import { getRoastedCoffees } from './roasted-coffee-resolvers'
-import { SyncService } from '../../services/data-sync/data-sync'
-import { RoastingService } from '../../services/roasting-service'
-import { buildRoastingResolvers } from './roasting-resolvers'
+import { getOrders } from './order-resolvers';
+import { getProducts } from './product-resolvers';
+import { getGreenCoffees } from './green-coffee-resolvers';
+import { getRoastedCoffees } from './roasted-coffee-resolvers';
+import { buildRoastingResolvers } from './roasting-resolvers';
+import { SyncService } from '../../services/data-sync/data-sync';
 
-export const buildAppResolver = (
-  syncService: SyncService,
-  roastingService: RoastingService
-) => {
-  const roastingResolvers = buildRoastingResolvers(roastingService)
+export const buildAppResolver = (syncService: SyncService) => {
+  const roastingResolvers = buildRoastingResolvers();
 
   return {
     sync: syncService.getSyncState,
@@ -18,9 +14,17 @@ export const buildAppResolver = (
     roastedCoffees: getRoastedCoffees,
     products: getProducts,
     orders: getOrders,
-    roastings: roastingResolvers.getRoastings,
+
+    //Roasting queries
+    roastings: roastingResolvers.getRoastingsResolver,
+
+    //Roasting mutations
+    createRoasting: roastingResolvers.createRoastingResolver,
+    selectOrdersRoasting: roastingResolvers.selectOrdersRoastingResolver,
     finishRoasting: roastingResolvers.finishRoastingResolver,
-    closePlanning: roastingResolvers.closePlanningResolver,
+    finishBatch: roastingResolvers.finishBatchResolver,
+    reportRealYield: roastingResolvers.reportRealYieldResolver,
+    startRoasting: roastingResolvers.startRoastingResolver,
     synchronizeProducts: syncService.syncProducts,
-  }
-}
+  };
+};

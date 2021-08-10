@@ -1,9 +1,9 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model } from 'mongoose';
 
-import { Product } from '../../shared/types/product'
-import { DocumentWithSchemaVersion } from './../types/general'
+import { Product } from '../../../shared/types/product';
+import { DocumentWithSchemaVersion } from '../../types/general';
 
-const PRODUCT_SCHEMA_VERSION = 1
+const PRODUCT_SCHEMA_VERSION = 1;
 
 export interface ProductDocument
   extends Omit<Product, 'id'>,
@@ -40,6 +40,6 @@ const productSchema = new Schema<ProductDocument>({
     }),
   ],
   roastedCoffeeId: { type: Number },
-})
+});
 
-export const ProductModel = model<ProductDocument>('Product', productSchema)
+export const ProductModel = model<ProductDocument>('Product', productSchema);

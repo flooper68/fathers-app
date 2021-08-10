@@ -1,4 +1,4 @@
-import { buildSchema } from 'graphql'
+import { buildSchema } from 'graphql';
 
 export const appSchema = buildSchema(`
 
@@ -35,20 +35,28 @@ export const appSchema = buildSchema(`
         finishedBatches: Int!
         weight: Float!
         realYield: Float!
+        expectedBatchYield: Float!
+    }
+
+    type RoastingFinishedBatch {
+        roastedCoffeeId: Int!
+        amount: Int!
+    }
+
+    type RoastingRealYield {
+        roastedCoffeeId: Int!
+        weight: Float!
     }
 
     type Roasting {
         id: ID!
-        dateCreated: String!
-        datePlanningClosed: String
-        dateFinished: String
         status: String!
-        totalWeight: Float!
-        orderIds: [Int]!
+        roastingDate: String!
         orders: [Order]!
-        greenCoffee: [RoastingGreenCoffee]
-        roastedCoffee: [RoastingRoastedCoffee]
-
+        greenCoffee: [RoastingGreenCoffee]!
+        roastedCoffee: [RoastingRoastedCoffee]!
+        finishedBatches: [RoastingFinishedBatch]!
+        realYield: [RoastingRealYield]!
     }
 
     type ProductCategory {
@@ -134,8 +142,14 @@ export const appSchema = buildSchema(`
 
 
     type RooMutation {
+
+        createRoasting(date: String!): SuccessResult
+        selectOrdersRoasting(roastingId: String!, orderId: Int!): SuccessResult
+        startRoasting: SuccessResult
+        finishBatch(roastedCoffeeId: Int!): SuccessResult
+        reportRealYield(roastedCoffeeId: Int!, weight: Float!): SuccessResult
         finishRoasting: SuccessResult
-        closePlanning: SuccessResult
+    
         synchronizeProducts: Void
 
     }
@@ -145,4 +159,4 @@ export const appSchema = buildSchema(`
         mutation: RooMutation
     }
     
-`)
+`);
