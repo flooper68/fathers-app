@@ -8,7 +8,7 @@ import { ProductModel } from '../../catalog/repository/product-model';
 import { reducePromisesInSequence } from '../promise-utils';
 import { WooCommerceClient } from '../woocommerce-client';
 
-const fetchVariationsAndMapProducts = async (
+export const fetchVariationsAndMapProducts = async (
   item: WooCommerceProductResponse,
   client: WooCommerceClient,
   products: Product[]
@@ -50,7 +50,7 @@ const fetchVariationsAndMapProducts = async (
   return products;
 };
 
-const syncProduct = async (product: Product) => {
+export const syncProduct = async (product: Product) => {
   const dbEntity = await ProductModel.findOne({
     id: product.id,
   }).exec();
