@@ -18,5 +18,5 @@
     "baseUrl": "src",
     "strictPropertyInitialization": false
   },
-  "include": ["src"]
+  "include": ["src", "scripts"]
 }
