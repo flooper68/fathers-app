@@ -1,6 +1,6 @@
 import { Logger } from '../../../shared/logger';
 import { WooCommerceOrderResponse, Order } from '../../../shared/types/order';
-import { OrderModel } from '../../sales/repository/order-model';
+import { OrderModel } from '../../modules/sales/repository/order-model';
 import { runPromisesInSequence } from '../promise-utils';
 import { WooCommerceClient } from '../woocommerce-client';
 
@@ -21,7 +21,6 @@ const mapOrder = (order: WooCommerceOrderResponse): Order => {
         quantity: item.quantity,
       };
     }),
-    roasted: false,
   };
 };
 

@@ -1,42 +1,60 @@
-import DataLoader from 'dataloader';
+import { CatalogModule } from '../../modules/catalog/catalog-contracts';
+import { GraphQLRootMutationAssignProductToRoastedCoffeeArgs } from './../../../shared/graphql-types.d';
+import { Logger } from '../../../shared/logger';
+import { RoastingModule } from '../../modules/roasting/roasting-contracts';
 
-import {
-  ProductDocument,
-  ProductModel,
-} from '../../catalog/repository/product-model';
-import { getRoastedCoffee } from './roasted-coffee-resolvers';
+export const buildProductResolvers = (context: {
+  roastingModule: RoastingModule;
+  catalogModule: CatalogModule;
+}) => {
+  return {
+    getProducts: async () => {
+      try {
+        const products = await context.catalogModule.getProducts();
 
-const productLoader = new DataLoader(async (keys: readonly number[]) => {
-  return await ProductModel.find({ id: { $in: keys as number[] } });
-});
+        return products.map(async (product) => {
+          return {
+            ...product,
+            roastedCoffeeId: async () => {
+              const roastingProduct = await context.roastingModule.getRoastingProduct(
+                { id: product.id }
+              );
+              return roastingProduct?.roastedCoffeeId;
+            },
+            roastedCoffeeName: async () => {
+              const roastingProduct = await context.roastingModule.getRoastingProduct(
+                { id: product.id }
+              );
+              if (!roastingProduct || !roastingProduct.roastedCoffeeId) {
+                return;
+              }
 
-const mapProduct = (item: ProductDocument) => ({
-  id: item.id,
-  name: item.name,
-  dateModified: item.dateModified,
-  description: item.description,
-  shortDescription: item.shortDescription,
-  categories: item.categories.map((category) => ({
-    id: category.id,
-    name: category.name,
-  })),
-  images: item.images.map((image) => ({
-    id: image.id,
-    name: image.name,
-    src: image.src,
-  })),
-  variations: item.variations,
-  roastedCoffeeId: item.roastedCoffeeId,
-  roastedCoffee: () =>
-    item.roastedCoffeeId ? getRoastedCoffee(item.roastedCoffeeId) : undefined,
-});
-
-export const getProduct = async (productId: number) => {
-  const item = await productLoader.load(productId);
-  return mapProduct(item);
-};
-
-export const getProducts = async () => {
-  const products = await ProductModel.find().sort({ id: -1 });
-  return products.map(mapProduct);
+              const roastedCoffee = await context.roastingModule.getRoastedCoffee(
+                { id: roastingProduct?.roastedCoffeeId }
+              );
+              return roastedCoffee?.name;
+            },
+          };
+        });
+      } catch (e) {
+        Logger.error(`Error while executing resolver`, e);
+        throw e;
+      }
+    },
+    assignProductToRoastedCoffee: async (
+      props: GraphQLRootMutationAssignProductToRoastedCoffeeArgs
+    ) => {
+      try {
+        await context.roastingModule.assignProductToRoastedCoffee(props);
+        return {
+          success: true,
+        };
+      } catch (e) {
+        Logger.error(`Error while executing resolver`, e);
+        return {
+          success: false,
+        };
+      }
+    },
+  };
 };

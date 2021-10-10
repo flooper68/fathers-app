@@ -1,27 +1,54 @@
+import { RoastingModule } from './../../modules/roasting/roasting-contracts';
 import {
-  findRoastedCoffee,
-  findOneRoastedCoffee,
-} from './../../roasting/repositories/roasted-coffee-repository';
-import { getGreenCoffee } from './green-coffee-resolvers';
+  GraphQLRootMutationCreateRoastedCoffeeArgs,
+  GraphQLRootMutationUpdateRoastedCoffeeArgs,
+} from './../../../shared/graphql-types.d';
+import { Logger } from '../../../shared/logger';
 
-export const getRoastedCoffee = async (id: number) => {
-  const item = await findOneRoastedCoffee({ where: { id } });
-
-  if (!item) {
-    return undefined;
-  }
+export const buildRoastedCoffeeResolvers = (context: {
+  roastingModule: RoastingModule;
+}) => {
   return {
-    ...item,
-    greenCoffee: () => getGreenCoffee(item.greenCoffeeId),
-  };
-};
+    getRoastedCoffees: async () => {
+      const rows = await context.roastingModule.getAllRoastedCoffees();
 
-export const getRoastedCoffees = async () => {
-  const rows = await findRoastedCoffee();
-  return rows.map((coffee) => {
-    return {
-      ...coffee,
-      greenCoffee: () => getGreenCoffee(coffee.greenCoffeeId),
-    };
-  });
+      return rows.map((coffee) => {
+        return {
+          ...coffee,
+          greenCoffeeName: async () => {
+            const entity = await context.roastingModule.getGreenCoffee({
+              id: coffee.greenCoffeeId,
+            });
+            return entity?.name;
+          },
+        };
+      });
+    },
+    create: async (props: GraphQLRootMutationCreateRoastedCoffeeArgs) => {
+      try {
+        await context.roastingModule.createRoastedCoffee(props);
+        return {
+          success: true,
+        };
+      } catch (e) {
+        Logger.error(`Error while executing resolver`, e);
+        return {
+          success: false,
+        };
+      }
+    },
+    update: async (props: GraphQLRootMutationUpdateRoastedCoffeeArgs) => {
+      try {
+        await context.roastingModule.updateRoastedCoffee(props);
+        return {
+          success: true,
+        };
+      } catch (e) {
+        Logger.error(`Error while executing resolver`, e);
+        return {
+          success: false,
+        };
+      }
+    },
+  };
 };

@@ -1,10 +1,15 @@
 export interface RoastedCoffee {
-  id: number;
+  id: string;
   name: string;
-  greenCoffeeId: number;
+  greenCoffeeId: string;
 }
 
 export interface RoastedCoffeeProduct {
-  productId: number;
-  roastedCoffeeId: number;
+  id: number;
+  roastedCoffeeId: string;
+}
+
+export interface RoastingProduct {
+  id: number;
+  roastedCoffeeId?: string | null;
 }

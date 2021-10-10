@@ -1,23 +1,24 @@
-import React, { useCallback } from 'react'
-import { ApolloClient, InMemoryCache } from '@apollo/client'
-import { Switch, Route, useLocation, useHistory } from 'react-router-dom'
-import { Button, Dropdown, Layout, Menu, PageHeader, Spin } from 'antd'
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
-import moment from 'moment'
+import React, { useCallback } from 'react';
+import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { Switch, Route, useLocation, useHistory } from 'react-router-dom';
+import { Button, Dropdown, Layout, Menu, PageHeader, Spin } from 'antd';
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import moment from 'moment';
 
-const { Header, Sider, Content } = Layout
+const { Header, Sider, Content } = Layout;
 
-import { Navigation } from './navigation'
-import { Products } from '../products/products'
-import { ApiClientContext, useBuildApiClient } from '../api/api-client'
-import { Orders } from '../orders/orders'
-import { Roastings } from '../roasting/roasting'
+import { Navigation } from './navigation';
+import { Products } from '../modules/products/products';
+import { ApiClientContext, useBuildApiClient } from '../api/api-client';
+import { Orders } from '../modules/orders/orders';
+import { Roastings } from '../modules/roasting/roasting';
 import {
   useAppSync,
   getOrderLastSyncDate,
   getOrderSyncInProgress,
-} from './sync'
-import { useAppSelector } from '../store'
+} from './sync';
+import { useAppSelector } from '../store';
+import { Settings } from '../modules/settings/settings';
 
 const apolloClient = new ApolloClient({
   uri: '/api/graphql',
@@ -32,29 +33,31 @@ const apolloClient = new ApolloClient({
       errorPolicy: 'all',
     },
   },
-})
+});
 
 const titleMap: { [key: string]: string } = {
   '/': 'Pražení',
   '/products': 'Produkty',
   '/orders': 'Objednávky',
-}
+  '/settings': 'Nastavení Káv',
+};
 
 const subTitleMap: { [key: string]: string } = {
   '/': '',
   '/products': 'Zde vidíte vše o produktech.',
   '/orders': 'Zde vidíte vše o objednávkách.',
-}
+  '/settings': 'Zde můžete nastavit detaily o pražení.',
+};
 
 export const Root: React.FunctionComponent = () => {
-  const orderLastSyncDate = useAppSelector(getOrderLastSyncDate)
-  const orderSyncInProgress = useAppSelector(getOrderSyncInProgress)
+  const orderLastSyncDate = useAppSelector(getOrderLastSyncDate);
+  const orderSyncInProgress = useAppSelector(getOrderSyncInProgress);
 
-  const apiClient = useBuildApiClient(apolloClient)
-  const location = useLocation()
-  const history = useHistory()
+  const apiClient = useBuildApiClient(apolloClient);
+  const location = useLocation();
+  const history = useHistory();
 
-  useAppSync(apiClient)
+  useAppSync(apiClient);
 
   const menu = (
     <Menu>
@@ -62,14 +65,14 @@ export const Root: React.FunctionComponent = () => {
         Odhlásit se
       </Menu.Item>
     </Menu>
-  )
+  );
 
-  const title = titleMap[location.pathname]
-  const subTitle = subTitleMap[location.pathname]
+  const title = titleMap[location.pathname];
+  const subTitle = subTitleMap[location.pathname];
 
   const onBack = useCallback(() => {
-    history.push('/')
-  }, [history])
+    history.push('/');
+  }, [history]);
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -119,6 +122,9 @@ export const Root: React.FunctionComponent = () => {
             </Header>
             <Content>
               <Switch>
+                <Route path="/settings">
+                  <Settings />
+                </Route>
                 <Route path="/products">
                   <Products />
                 </Route>
@@ -134,5 +140,5 @@ export const Root: React.FunctionComponent = () => {
         </Layout>
       </ApiClientContext.Provider>
     </div>
-  )
-}
+  );
+};

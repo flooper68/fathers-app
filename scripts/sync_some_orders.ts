@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import { Logger } from '../src/shared/logger';
 import { buildWooCommerceClient } from '../src/server/services/woocommerce-client';
-import { OrderModel } from '../src/server/sales/repository/order-model';
+import { OrderModel } from '../src/server/modules/sales/repository/order-model';
 import { WooCommerceOrderResponse, Order } from '../src/shared/types/order';
 
 config();
@@ -29,7 +29,6 @@ const mapOrder = (order: WooCommerceOrderResponse): Order => {
         quantity: item.quantity,
       };
     }),
-    roasted: false,
   };
 };
 

@@ -1,21 +1,23 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Menu } from 'antd'
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu } from 'antd';
 import {
   WalletOutlined,
   UnorderedListOutlined,
   HomeOutlined,
-} from '@ant-design/icons'
-import Title from 'antd/lib/typography/Title'
+  SettingOutlined,
+} from '@ant-design/icons';
+import Title from 'antd/lib/typography/Title';
 
 const locationKeyMap: Record<string, string> = {
   '/': '1',
   '/orders': '2',
   '/products': '3',
-}
+  '/settings': '4',
+};
 
 export const Navigation = () => {
-  const location = useLocation()
+  const location = useLocation();
 
   return (
     <div>
@@ -47,7 +49,10 @@ export const Navigation = () => {
         <Menu.Item key="3" icon={<UnorderedListOutlined />}>
           <Link to="products">Produkty</Link>
         </Menu.Item>
+        <Menu.Item key="4" icon={<SettingOutlined />}>
+          <Link to="settings">Nastavení Káv</Link>
+        </Menu.Item>
       </Menu>
     </div>
-  )
-}
+  );
+};

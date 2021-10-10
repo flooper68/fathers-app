@@ -1,34 +1,47 @@
-import { findRoastedCoffee } from './../../roasting/repositories/roasted-coffee-repository';
 import {
-  findOneGreenCoffee,
-  findGreenCoffee,
-} from './../../roasting/repositories/green-coffee-repository';
+  GraphQLRootMutationCreateGreenCoffeeArgs,
+  GraphQLRootMutationUpdateGreenCoffeeArgs,
+} from './../../../shared/graphql-types.d';
+import { Logger } from '../../../shared/logger';
+import { RoastingModule } from '../../modules/roasting/roasting-contracts';
 
-export const getGreenCoffee = async (id: number) => {
-  const greenCoffee = await findOneGreenCoffee({ where: { id } });
-
+export const buildGreenCoffeeResolvers = (context: {
+  roastingModule: RoastingModule;
+}) => {
   return {
-    ...greenCoffee,
-    roastedCoffees: () => getGreenCoffeesRoastedCoffees(id),
+    getAllGreenCoffees: async () => {
+      const rows = await context.roastingModule.getAllGreenCoffees();
+      return rows.map((coffee) => {
+        return {
+          ...coffee,
+        };
+      });
+    },
+    create: async (props: GraphQLRootMutationCreateGreenCoffeeArgs) => {
+      try {
+        await context.roastingModule.createGreenCoffee(props);
+        return {
+          success: true,
+        };
+      } catch (e) {
+        Logger.error(`Error while executing resolver`, e);
+        return {
+          success: false,
+        };
+      }
+    },
+    update: async (props: GraphQLRootMutationUpdateGreenCoffeeArgs) => {
+      try {
+        await context.roastingModule.updateGreenCoffee(props);
+        return {
+          success: true,
+        };
+      } catch (e) {
+        Logger.error(`Error while executing resolver`, e);
+        return {
+          success: false,
+        };
+      }
+    },
   };
-};
-
-export const getGreenCoffeesRoastedCoffees = async (greenCoffeeId: number) => {
-  const rows = await findRoastedCoffee({ where: { greenCoffeeId } });
-  return rows.map((coffee) => {
-    return {
-      ...coffee,
-      greenCoffee: () => getGreenCoffee(coffee.greenCoffeeId),
-    };
-  });
-};
-
-export const getGreenCoffees = async () => {
-  const rows = await findGreenCoffee();
-  return rows.map((coffee) => {
-    return {
-      ...coffee,
-      roastedCoffees: () => getGreenCoffeesRoastedCoffees(coffee.id),
-    };
-  });
 };

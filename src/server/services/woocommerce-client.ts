@@ -9,7 +9,7 @@ import {
   WooCommerceProductResponse,
   WooCommerceProductVariationResponse,
 } from '../../shared/types/product';
-import { OrderModel } from '../sales/repository/order-model';
+import { OrderModel } from '../modules/sales/repository/order-model';
 import { OrderStatus } from '../../shared/types/order';
 
 config();

@@ -1,10 +1,9 @@
-import { findOneRoastedCoffeeProduct } from '../../roasting/repositories/roasted-coffee-product-repository';
 import { Logger } from '../../../shared/logger';
 import {
   WooCommerceProductResponse,
   Product,
 } from '../../../shared/types/product';
-import { ProductModel } from '../../catalog/repository/product-model';
+import { ProductModel } from '../../modules/catalog/repository/product-model';
 import { reducePromisesInSequence } from '../promise-utils';
 import { WooCommerceClient } from '../woocommerce-client';
 
@@ -18,21 +17,12 @@ export const fetchVariationsAndMapProducts = async (
 
   Logger.info(`Received ${variations.totalCount} product variations`);
 
-  const roastedCoffeeProduct = await findOneRoastedCoffeeProduct({
-    where: { productId: item.id },
-  });
-
-  if (!roastedCoffeeProduct) {
-    Logger.info(`Product ${item.name} is not setup for roasting.`);
-  }
-
   products.push({
     id: item.id,
     name: item.name,
     dateModified: item.date_modified,
     description: item.description,
     shortDescription: item.short_description,
-    roastedCoffeeId: roastedCoffeeProduct.roastedCoffeeId,
     images: item.images,
     categories: item.categories.map((category) => {
       return { id: category.id, name: category.name };
@@ -95,7 +85,7 @@ export const buildSyncProducts = (
     updateSyncState({
       productSyncInProgress: false,
       productSyncError: true,
-      productSyncErrorMessage: e?.message,
+      productSyncErrorMessage: (e as { message: string }).message,
     });
     Logger.error(`Error syncing products`, e);
   }

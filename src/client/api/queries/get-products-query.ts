@@ -5,6 +5,8 @@ export const ProductListQuery = gql`
     products {
       id
       name
+      roastedCoffeeId
+      roastedCoffeeName
       description
       shortDescription
       dateModified
@@ -20,9 +22,6 @@ export const ProductListQuery = gql`
       variations {
         weight
       }
-      roastedCoffee {
-        name
-      }
     }
   }
 `;
@@ -30,6 +29,8 @@ export const ProductListQuery = gql`
 export interface ProductListItem {
   id: number;
   name: string;
+  roastedCoffeeId: string;
+  roastedCoffeeName: string;
   description: string;
   shortDescription: string;
   dateModified: string;
@@ -43,5 +44,4 @@ export interface ProductListItem {
     name: string;
   }[];
   variations: { weight: number }[];
-  roastedCoffee: { name: string };
 }

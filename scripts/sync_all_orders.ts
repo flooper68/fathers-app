@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { config } from 'dotenv';
 
 import { Logger } from '../src/shared/logger';
-import { OrderModel } from '../src/server/sales/repository/order-model';
+import { OrderModel } from '../src/server/modules/sales/repository/order-model';
 import { buildWooCommerceClient } from '../src/server/services/woocommerce-client';
 import { WooCommerceOrderResponse, Order } from '../src/shared/types/order';
 
@@ -25,7 +25,6 @@ const mapOrder = (order: WooCommerceOrderResponse): Order => {
         quantity: item.quantity,
       };
     }),
-    roasted: false,
   };
 };
 

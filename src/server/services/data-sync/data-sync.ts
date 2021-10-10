@@ -3,7 +3,7 @@ import { buildSyncNewOrders, buildSyncUnresolvedOrders } from './sync-orders';
 import { buildSyncProducts } from './sync-products';
 import { WooCommerceClient } from '../woocommerce-client';
 
-const ORDER_SYNC_INTERVAL_MS = 30000;
+const ORDER_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 export const buildDataSync = (client: WooCommerceClient) => {
   let syncState: {
@@ -59,7 +59,7 @@ export const buildDataSync = (client: WooCommerceClient) => {
         await syncNewOrders();
         await syncUnresolvedOrders();
       } catch (e) {
-        syncState.orderSyncErrorMessage = e.message;
+        syncState.orderSyncErrorMessage = (e as Error).message;
         syncState.orderSyncError = true;
         Logger.error(`Error syncing orders`, e);
       }
