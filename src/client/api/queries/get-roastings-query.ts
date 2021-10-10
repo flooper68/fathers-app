@@ -38,20 +38,10 @@ export const RoastingListQuery = gql`
         number
         status
         dateCreated
-        roastingId
         lineItems {
           name
           quantity
           variationId
-          product {
-            categories {
-              name
-            }
-            variations {
-              id
-              weight
-            }
-          }
         }
       }
     }

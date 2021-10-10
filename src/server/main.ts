@@ -1,13 +1,18 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
-import { graphqlHTTP } from 'express-graphql';
 
+import { buildRoastingRepository } from './modules/roasting/repositories/roasting-repository';
+import { buildCatalogModule } from './modules/catalog/catalog-module';
+import { buildRoastingProductRepository } from './modules/roasting/repositories/roasting-product-repository';
+import { buildRoastedCoffeeRepository } from './modules/roasting/repositories/roasted-coffee-repository';
 import { Logger } from './../shared/logger';
 import { buildWooCommerceClient } from './services/woocommerce-client';
 import { buildDataSync } from './services/data-sync/data-sync';
-import { appSchema } from './api/schema/schema';
-import { buildAppResolver } from './api/resolvers/resolver';
+import { buildGreenCoffeeRepository } from './modules/roasting/repositories/green-coffee-repository';
+import { buildRoastingModule } from './modules/roasting/roasting-module';
+import { buildSalesModule } from './modules/sales/sales-module';
+import { withGraphqlApi } from './api/with-graphql-api';
 
 config();
 
@@ -28,15 +33,31 @@ mongoose
 
       const woocommerceClient = await buildWooCommerceClient();
       const syncService = buildDataSync(woocommerceClient);
+      const greenCoffeeRepository = buildGreenCoffeeRepository();
+      const roastingRepository = buildRoastingRepository();
+      const roastedCoffeeRepository = buildRoastedCoffeeRepository();
+      const roastingProductRepository = buildRoastingProductRepository();
 
-      app.use(
-        '/api/graphql',
-        graphqlHTTP({
-          schema: appSchema,
-          rootValue: buildAppResolver(syncService),
-          graphiql: true,
-        })
-      );
+      const roastingModule = buildRoastingModule({
+        roastedCoffeeRepository,
+        roastingProductRepository,
+        greenCoffeeRepository,
+        roastingRepository,
+      });
+
+      const catalogModule = buildCatalogModule();
+      const salesModule = buildSalesModule();
+
+      withGraphqlApi({
+        app,
+        syncService,
+        greenCoffeeRepository,
+        roastedCoffeeRepository,
+        roastingProductRepository,
+        roastingModule,
+        catalogModule,
+        salesModule,
+      });
 
       await syncService.startOrderSyncJob();
     });

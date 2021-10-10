@@ -1,3 +1,11 @@
+import { UpdateRoastedCoffeeMutation } from './queries/update-roasted-coffee-mutation';
+import { AssignRoastedCoffeeMutation } from './queries/assign-roasted-coffee-mutation';
+import { CreateRoastedCoffeeMutation } from './queries/create-roasted-coffee-mutation';
+import {
+  RoastedCoffeeListItem,
+  RoastedCoffeeQuery,
+} from './queries/get-roasted-coffee-query';
+import { CreateGreenCoffeeMutation } from './queries/create-green-coffee-mutation';
 import { ReportRealYieldMutation } from './queries/report-real-yield-mutation';
 import { FinishBatchMutation } from './queries/finish-batch-mutation';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
@@ -19,6 +27,11 @@ import { SelectOrdersRoastingMutation } from './queries/select-orders-roasting-m
 import { StartRoastingMutation } from './queries/start-roasting-mutation';
 import { SyncState, SyncStateQuery } from './queries/sync-state-query';
 import { SynchronizeProductsMutation } from './queries/synchronize-products-mutation';
+import {
+  GreenCoffeeListItem,
+  GreenCoffeeQuery,
+} from './queries/get-green-coffee-query';
+import { UpdateGreenCoffeeMutation } from './queries/update-green-coffee-mutation';
 
 export const useBuildApiClient = (
   client: ApolloClient<NormalizedCacheObject>
@@ -28,6 +41,22 @@ export const useBuildApiClient = (
       products: ProductListItem[];
     }>({
       query: ProductListQuery,
+    });
+  }, [client]);
+
+  const getGreenCoffees = useCallback(() => {
+    return client.query<{
+      greenCoffees: GreenCoffeeListItem[];
+    }>({
+      query: GreenCoffeeQuery,
+    });
+  }, [client]);
+
+  const getRoastedCoffees = useCallback(() => {
+    return client.query<{
+      roastedCoffees: RoastedCoffeeListItem[];
+    }>({
+      query: RoastedCoffeeQuery,
     });
   }, [client]);
 
@@ -68,6 +97,75 @@ export const useBuildApiClient = (
         variables: {
           date,
         },
+      });
+    },
+    [client]
+  );
+
+  const createGreenCoffee = useCallback(
+    (data: {
+      name: string;
+      batchWeight: number;
+      roastingLossFactor: number;
+    }) => {
+      return client.mutate<{
+        createGreenCoffee: SuccessResult;
+      }>({
+        mutation: CreateGreenCoffeeMutation,
+        variables: data,
+      });
+    },
+    [client]
+  );
+
+  const createRoastedCoffee = useCallback(
+    (data: { name: string; greenCoffeeId: string }) => {
+      return client.mutate<{
+        createRoastedCoffee: SuccessResult;
+      }>({
+        mutation: CreateRoastedCoffeeMutation,
+        variables: data,
+      });
+    },
+    [client]
+  );
+
+  const updateGreenCoffee = useCallback(
+    (data: {
+      id: string;
+      name: string;
+      batchWeight: number;
+      roastingLossFactor: number;
+    }) => {
+      return client.mutate<{
+        updateGreenCoffee: SuccessResult;
+      }>({
+        mutation: UpdateGreenCoffeeMutation,
+        variables: data,
+      });
+    },
+    [client]
+  );
+
+  const updateRoastedCoffee = useCallback(
+    (data: { id: string; name: string; greenCoffeeId: string }) => {
+      return client.mutate<{
+        updateRoastedCoffee: SuccessResult;
+      }>({
+        mutation: UpdateRoastedCoffeeMutation,
+        variables: data,
+      });
+    },
+    [client]
+  );
+
+  const assignRoastedCoffee = useCallback(
+    (data: { id: number; roastedCoffeeId: string }) => {
+      return client.mutate<{
+        assignProductToRoastedCoffee: SuccessResult;
+      }>({
+        mutation: AssignRoastedCoffeeMutation,
+        variables: data,
       });
     },
     [client]
@@ -142,6 +240,8 @@ export const useBuildApiClient = (
   }, [client]);
 
   return {
+    getGreenCoffees,
+    getRoastedCoffees,
     getProducts,
     getOrders,
     getRoastings,
@@ -153,6 +253,11 @@ export const useBuildApiClient = (
     createRoasting,
     selectOrdersRoasting,
     reportRealYield,
+    createGreenCoffee,
+    createRoastedCoffee,
+    updateGreenCoffee,
+    assignRoastedCoffee,
+    updateRoastedCoffee,
   };
 };
 

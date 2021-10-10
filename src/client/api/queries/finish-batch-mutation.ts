@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 
 export const FinishBatchMutation = gql`
-  mutation FinishBatch($roastedCoffeeId: Int!) {
+  mutation FinishBatch($roastedCoffeeId: String!) {
     finishBatch(roastedCoffeeId: $roastedCoffeeId) {
       success
     }

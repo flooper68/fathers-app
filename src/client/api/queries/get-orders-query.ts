@@ -11,19 +11,11 @@ export const OrdersListQuery = gql`
         status
         dateCreated
         roastingId
+        roastingDate
         lineItems {
           name
           quantity
           variationId
-          product {
-            categories {
-              name
-            }
-            variations {
-              id
-              weight
-            }
-          }
         }
       }
     }
@@ -35,20 +27,12 @@ export interface OrderListItem {
   number: number;
   status: string;
   dateCreated: string;
-  roastingId: string;
+  roastingId?: string;
+  roastingDate?: string;
   lineItems: {
     name: string;
     quantity: number;
     variationId: number;
-    product: {
-      categories: {
-        name: string;
-      }[];
-      variations: {
-        id: number;
-        weight: number;
-      }[];
-    };
   }[];
 }
 

@@ -6,6 +6,7 @@
     "node": ">=14.16.x <15"
   },
   "scripts": {
+    "generate": "graphql-codegen",
     "start:dev": "concurrently --names 'CLIENT,SERVER' -c 'red.bold,blue.bold' \"yarn start:dev:client\" \"yarn start:dev:server\"",
     "start:dev:client": "craco start",
     "start:dev:server": "nodemon",
@@ -53,6 +54,9 @@
   },
   "devDependencies": {
     "@craco/craco": "^6.1.1",
+    "@graphql-codegen/cli": "^2.2.0",
+    "@graphql-codegen/typescript": "^2.2.2",
+    "@graphql-codegen/typescript-resolvers": "^2.3.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",

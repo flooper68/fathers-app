@@ -1,20 +1,19 @@
-import { findGreenCoffee } from '../../roasting/repositories/green-coffee-repository';
-import { reportRealYieldUseCase } from '../../roasting/use-cases/report-real-yield';
-import { selectOrdersRoastingUseCase } from '../../roasting/use-cases/select-orders-roasting';
-import { startRoastingUseCase } from '../../roasting/use-cases/start-roasting';
-import { buildRoastingRepository } from '../../roasting/repositories/roasting-repository';
+import { DataLoaders } from './../data-loaders/data-loaders';
+import { CatalogModule } from './../../modules/catalog/catalog-contracts';
+import { RoastingProjection } from '../../projections/roasting-projection';
+import { SalesModule } from './../../modules/sales/sales-contracts';
 import { Logger } from '../../../shared/logger';
-import { createRoastingUseCase } from '../../roasting/use-cases/create-roasting';
-import { finishRoastingUseCase } from '../../roasting/use-cases/finish-roasting';
-import { getRoastingsProjection } from '../../roasting/projections/roasting-projection';
-import { finishBatchUseCase } from '../../roasting/use-cases/finish-batch';
+import { RoastingModule } from '../../modules/roasting/roasting-contracts';
 
-export const buildRoastingResolvers = () => {
-  const repository = buildRoastingRepository();
-
+export const buildRoastingResolvers = (context: {
+  roastingModule: RoastingModule;
+  salesModule: SalesModule;
+  catalogModule: CatalogModule;
+  dataLoaders: DataLoaders;
+}) => {
   const createRoastingResolver = async (args: { date: string }) => {
     try {
-      await createRoastingUseCase(args.date, repository);
+      await context.roastingModule.createRoasting({ roastingDate: args.date });
       return {
         success: true,
       };
@@ -26,16 +25,12 @@ export const buildRoastingResolvers = () => {
     }
   };
 
-  const selectOrdersRoastingResolver = async (args: {
+  const selectOrdersRoastingResolver = async (props: {
     orderId: number;
     roastingId: string;
   }) => {
     try {
-      await selectOrdersRoastingUseCase(
-        args.roastingId,
-        args.orderId,
-        repository
-      );
+      await context.roastingModule.selectOrdersRoasting(props);
       return {
         success: true,
       };
@@ -49,7 +44,7 @@ export const buildRoastingResolvers = () => {
 
   const startRoastingResolver = async () => {
     try {
-      await startRoastingUseCase(repository, findGreenCoffee);
+      await context.roastingModule.startRoasting();
       return {
         success: true,
       };
@@ -63,7 +58,9 @@ export const buildRoastingResolvers = () => {
 
   const finishBatchResolver = async (args: { roastedCoffeeId: number }) => {
     try {
-      await finishBatchUseCase(args.roastedCoffeeId, repository);
+      await context.roastingModule.finishBatch({
+        roastedCoffeeId: args.roastedCoffeeId,
+      });
       return {
         success: true,
       };
@@ -80,11 +77,7 @@ export const buildRoastingResolvers = () => {
     weight: number;
   }) => {
     try {
-      await reportRealYieldUseCase(
-        args.roastedCoffeeId,
-        args.weight,
-        repository
-      );
+      await context.roastingModule.reportRealYield(args);
       return {
         success: true,
       };
@@ -98,12 +91,34 @@ export const buildRoastingResolvers = () => {
 
   const finishRoastingResolver = async () => {
     try {
-      await finishRoastingUseCase(repository);
+      await context.roastingModule.finishRoasting();
       return {
         success: true,
       };
     } catch (e) {
       Logger.error(`Error handling finishRoasting mutation`, e);
+      return {
+        success: false,
+      };
+    }
+  };
+
+  const getRoastingsResolver = async () => {
+    try {
+      const roastings = await context.roastingModule.getAllRoastings();
+      return roastings.map(async (item) => {
+        const projection = RoastingProjection.getFullProjection(item, context);
+        const orders = await context.salesModule.getOrdersByIds(
+          projection.orders
+        );
+
+        return {
+          ...projection,
+          orders: orders.map(context.dataLoaders.resolveOrder),
+        };
+      });
+    } catch (e) {
+      Logger.error(`Error handling resolver`, e);
       return {
         success: false,
       };
@@ -117,6 +132,6 @@ export const buildRoastingResolvers = () => {
     finishBatchResolver,
     finishRoastingResolver,
     reportRealYieldResolver,
-    getRoastingsResolver: getRoastingsProjection(repository),
+    getRoastingsResolver,
   };
 };

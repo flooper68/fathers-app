@@ -5,23 +5,21 @@ export const appSchema = buildSchema(`
     scalar Void
 
     type GreenCoffee {
-        id: Int!
+        id: String!
         name: String!
         batchWeight: Float!
         roastingLossFactor: Float!
-        roastedCoffees: [RoastedCoffee]!
     }
 
     type RoastedCoffee {
-        id: Int!
+        id: String!
         name: String!
-        greenCoffeeId: Int!
-        greenCoffee: GreenCoffee
+        greenCoffeeId: String!
+        greenCoffeeName: String!
     }
 
-
     type RoastingGreenCoffee {
-        id: Int!
+        id: String!
         name: String!
         batchWeight: Float!
         roastingLossFactor: Float!
@@ -29,7 +27,7 @@ export const appSchema = buildSchema(`
     }
 
     type RoastingRoastedCoffee {
-        id: Int!
+        id: String!
         name: String!
         numberOfBatches: Float!
         finishedBatches: Int!
@@ -39,12 +37,12 @@ export const appSchema = buildSchema(`
     }
 
     type RoastingFinishedBatch {
-        roastedCoffeeId: Int!
+        roastedCoffeeId: String!
         amount: Int!
     }
 
     type RoastingRealYield {
-        roastedCoffeeId: Int!
+        roastedCoffeeId: String!
         weight: Float!
     }
 
@@ -84,8 +82,8 @@ export const appSchema = buildSchema(`
         images: [ProductImages]!
         categories: [ProductCategory]!
         variations: [ProductVariation]!
-        roastedCoffeeId: Int
-        roastedCoffee: RoastedCoffee
+        roastedCoffeeId: String
+        roastedCoffeeName: String
     }
 
     type LineItem {
@@ -95,7 +93,6 @@ export const appSchema = buildSchema(`
         productId: Int!
         variationId: Int!
         quantity: Int!
-        product: Product!
     }
 
     type Order {
@@ -104,9 +101,9 @@ export const appSchema = buildSchema(`
         status: String!
         dateCreated: String!
         dateModified: String!
-        roastingId: String
-        roasted: Boolean!
         lineItems: [LineItem]!
+        roastingId: String
+        roastingDate: String
     }
 
     type OrderList {
@@ -140,23 +137,30 @@ export const appSchema = buildSchema(`
         sync: Sync
     }
 
+    type RootMutation {
 
-    type RooMutation {
+        createGreenCoffee(name: String!, batchWeight: Float!, roastingLossFactor: Float!): SuccessResult
+        updateGreenCoffee(id: String!, name: String!, batchWeight: Float!, roastingLossFactor: Float!): SuccessResult
+
+        createRoastedCoffee(name: String!, greenCoffeeId: String!): SuccessResult
+        updateRoastedCoffee(id: String!, name: String!, greenCoffeeId: String!): SuccessResult
+
+        assignProductToRoastedCoffee(id: Int!, roastedCoffeeId: String!): SuccessResult
 
         createRoasting(date: String!): SuccessResult
         selectOrdersRoasting(roastingId: String!, orderId: Int!): SuccessResult
         startRoasting: SuccessResult
-        finishBatch(roastedCoffeeId: Int!): SuccessResult
-        reportRealYield(roastedCoffeeId: Int!, weight: Float!): SuccessResult
+        finishBatch(roastedCoffeeId: String!): SuccessResult
+        reportRealYield(roastedCoffeeId: String!, weight: Float!): SuccessResult
         finishRoasting: SuccessResult
-    
+
         synchronizeProducts: Void
 
     }
 
     schema {
         query: RootQuery
-        mutation: RooMutation
+        mutation: RootMutation
     }
-    
+
 `);
