@@ -5,8 +5,6 @@ import { Button, Dropdown, Layout, Menu, PageHeader, Spin } from 'antd';
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
-const { Header, Sider, Content } = Layout;
-
 import { Navigation } from './navigation';
 import { Products } from '../modules/products/products';
 import { ApiClientContext, useBuildApiClient } from '../api/api-client';
@@ -20,6 +18,8 @@ import {
 import { useAppSelector } from '../store';
 import { Settings } from '../modules/settings/settings';
 import { VersionTag } from './version-tag';
+
+const { Header, Sider, Content } = Layout;
 
 const apolloClient = new ApolloClient({
   uri: '/api/graphql',

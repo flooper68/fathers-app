@@ -13,17 +13,19 @@ WORKDIR /srv/fathers
 COPY package.json ./
 COPY yarn.lock ./
 COPY craco.config.js ./
-
-RUN yarn install
-
-COPY src ./src
+COPY .eslintrc ./
+COPY .eslintignore ./
+COPY .prettierrc ./
+COPY jest.config.js ./
 COPY tsconfig.json ./tsconfig.json
 COPY tsconfig.server.json ./tsconfig.server.json
+COPY src ./src
 COPY public ./public
 COPY scripts ./scripts
 COPY migrations ./migrations
 COPY dump ./dump
 
+RUN yarn install
 RUN yarn build
 
 CMD yarn start
