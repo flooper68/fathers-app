@@ -1,0 +1,23 @@
+version: 2.1
+jobs:
+    build:
+        machine:
+            image: ubuntu-1604:201903-01
+        steps:
+            - checkout
+            - restore_cache:
+                  keys:
+                      - v2-unit-dependencies-{{ checksum "yarn.lock" }}
+                      - v2-unit-dependencies-
+            - run:
+                  name: Write build tag
+                  command: sh ./scripts/generate-version.sh
+            - run:
+                  name: Build Docker image
+                  command: sh ./scripts/push.sh
+            - save_cache:
+                  paths:
+                      - node_modules
+                      - ~/.npm
+                      - ~/.cache
+                  key: v2-unit-dependencies-{{ checksum "yarn.lock" }}

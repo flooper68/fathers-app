@@ -13,6 +13,7 @@ import { buildGreenCoffeeRepository } from './modules/roasting/repositories/gree
 import { buildRoastingModule } from './modules/roasting/roasting-module';
 import { buildSalesModule } from './modules/sales/sales-module';
 import { withGraphqlApi } from './api/with-graphql-api';
+import { withStaticRouter } from './static-router';
 
 config();
 
@@ -60,6 +61,8 @@ mongoose
       });
 
       await syncService.startOrderSyncJob();
+
+      withStaticRouter({ app });
     });
   })
 

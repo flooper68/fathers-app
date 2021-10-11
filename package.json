@@ -6,6 +6,7 @@
     "node": ">=14.16.x <15"
   },
   "scripts": {
+    "start": "yarn migrate up && node build-server/src/server/main.js",
     "migrate": "yarn ts-node --project tsconfig.server.json ./migrations/index.ts",
     "generate": "graphql-codegen",
     "start:dev": "concurrently --names 'CLIENT,SERVER' -c 'red.bold,blue.bold' \"yarn start:dev:client\" \"yarn start:dev:server\"",
