@@ -12,6 +12,7 @@ WORKDIR /srv/fathers
 
 COPY package.json ./
 COPY yarn.lock ./
+COPY craco.config.js ./
 
 RUN yarn install
 

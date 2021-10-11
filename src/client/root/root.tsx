@@ -19,6 +19,7 @@ import {
 } from './sync';
 import { useAppSelector } from '../store';
 import { Settings } from '../modules/settings/settings';
+import { VersionTag } from './version-tag';
 
 const apolloClient = new ApolloClient({
   uri: '/api/graphql',
@@ -76,6 +77,7 @@ export const Root: React.FunctionComponent = () => {
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+      <VersionTag />
       <ApiClientContext.Provider value={apiClient}>
         <Layout>
           <Sider theme="light">
