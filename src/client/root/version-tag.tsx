@@ -10,9 +10,10 @@ export const VersionTag = () => {
         position: 'absolute',
         bottom: 16,
         left: 16,
-        fontSize: 12,
-        width: 120,
+        fontSize: 10,
+        width: 165,
         color: ' #8080807a',
+        zIndex: 100,
       }}
     >
       Version {APP_VERSION.version} <br />{' '}
