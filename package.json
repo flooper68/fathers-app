@@ -30,7 +30,8 @@
     "dump:data": "docker exec -it fathers-db mongodump --uri=\"mongodb://localhost:27017\" -u \"father\" -p \"father\" && docker cp fathers-db:/dump ./",
     "dump:data:local": "docker exec -it fathers-db mongodump --uri=\"mongodb://localhost:27017\" -u \"father\" -p \"father\" && docker cp fathers-db:/dump ./dump_local",
     "restore:data": "docker cp ./dump fathers-db:/dump && docker exec -it fathers-db mongorestore --uri=\"mongodb://localhost:27017\" -u \"father\" -p \"father\"",
-    "restore:data:local": "docker cp ./dump_local fathers-db:/dump && docker exec -it fathers-db mongorestore --uri=\"mongodb://localhost:27017\" -u \"father\" -p \"father\""
+    "restore:data:local": "docker cp ./dump_local fathers-db:/dump && docker exec -it fathers-db mongorestore --uri=\"mongodb://localhost:27017\" -u \"father\" -p \"father\"",
+    "ssh": "ssh root@165.22.29.254"
   },
   "dependencies": {
     "@apollo/client": "^3.3.13",
