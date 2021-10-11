@@ -12,7 +12,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
   app:
     container_name: fathers-app
-    image: flooper68/fathers:0.1.0-build.9
+    image: flooper68/fathers:latest
     restart: always
     environment:
       SERVER_PORT: ${SERVER_PORT}
