@@ -1,6 +1,6 @@
 
 
-if [ $CIRCLE_BRANCH = "next" ]
+if [ $CIRCLE_BRANCH = "dev" ]
 then
     docker build -t flooper68/fathers:latest -t flooper68/fathers:"$( jq -r .version package.json )-build.${CIRCLE_BUILD_NUM}" .
 else
