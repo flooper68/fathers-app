@@ -6,17 +6,17 @@ services:
     image: mongo:4.4.4-bionic
     restart: always
     ports:
-      - '27017:27017'
+      - '${MONGO_DB_PORT}:27017'
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
   app:
     container_name: fathers-app
-    image: flooper68/fathers:0.1.0-build.4
+    image: flooper68/fathers:0.1.0-build.5
     restart: always
     environment:
       SERVER_PORT: ${SERVER_PORT}
-      MONGO_DB_HOST: ${MONGO_DB_HOST}
+      MONGO_DB_HOST: fathers-db
       MONGO_DB_PORT: ${MONGO_DB_PORT}
       MONGO_DB_USERNAME: ${MONGO_DB_USERNAME}
       MONGO_DB_PASSWORD: ${MONGO_DB_PASSWORD}
@@ -26,4 +26,4 @@ services:
       WOOCOMMERCE_KEY: ${WOOCOMMERCE_KEY}
       WOOCOMMERCE_SECRET: ${WOOCOMMERCE_SECRET}
     ports:
-      - '3000:${SERVER_PORT}'
+      - '${SERVER_PORT}:${SERVER_PORT}'

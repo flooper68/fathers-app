@@ -3,7 +3,7 @@ FROM node:14.17.3-alpine3.11
 ARG BUILD_NUM
 ENV CIRCLE_BUILD_NUM=$BUILD_NUM
 
-RUN apk add --no-cache jq
+RUN apk add --no-cache jq bash
 
 RUN echo ${CIRCLE_BUILD_NUM}
 
