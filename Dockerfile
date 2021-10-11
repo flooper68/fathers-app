@@ -7,6 +7,9 @@ RUN apk add --no-cache jq bash
 
 RUN echo ${CIRCLE_BUILD_NUM}
 
+RUN mkdir -p /srv/fathers
+WORKDIR /srv/fathers
+
 COPY package.json ./
 COPY yarn.lock ./
 
