@@ -290,7 +290,7 @@ const buidGetRoastedCoffee = (
   return roastingData.roastedCoffee;
 };
 
-const getFullProjection = (
+const getFullProjection = async (
   item: Roasting,
   context: {
     roastingModule: RoastingModule;
@@ -303,13 +303,19 @@ const getFullProjection = (
     status: item.status,
     roastingDate: item.roastingDate,
     orders: item.orders,
-    greenCoffee: buidGetGreenCoffee(item, context),
-    roastedCoffee: buidGetRoastedCoffee(item, context),
+    greenCoffee: await buidGetGreenCoffee(item, context)(),
+    roastedCoffee: await buidGetRoastedCoffee(item, context)(),
     finishedBatches: item.finishedBatches,
     realYield: item.realYield,
   };
 };
 
-export const RoastingProjection = {
-  getFullProjection,
-};
+export const buildRoastingProjection = (context: {
+  roastingModule: RoastingModule;
+  salesModule: SalesModule;
+  catalogModule: CatalogModule;
+}) => ({
+  getFullProjection: (item: Roasting) => getFullProjection(item, context),
+});
+
+export type RoastingProjection = ReturnType<typeof buildRoastingProjection>;

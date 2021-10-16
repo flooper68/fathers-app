@@ -32,6 +32,12 @@ import {
   GreenCoffeeQuery,
 } from './queries/get-green-coffee-query';
 import { UpdateGreenCoffeeMutation } from './queries/update-green-coffee-mutation';
+import {
+  WarehouseRoastedCoffeeListItem,
+  WarehouseRoastedCoffeeListQuery,
+} from './queries/get-warehouse-roasted-coffee';
+import { AdjustRoastedCoffeeLeftoversMutation } from './queries/adjust-roasted-coffee-leftovers-mutation ';
+import { UseRoastedCoffeeLeftoversMutation } from './queries/use-roasted-coffee-leftovers-mutation';
 
 export const useBuildApiClient = (
   client: ApolloClient<NormalizedCacheObject>
@@ -77,6 +83,14 @@ export const useBuildApiClient = (
       roastings: RoastingListItem[];
     }>({
       query: RoastingListQuery,
+    });
+  }, [client]);
+
+  const getWarehouseRoastedCoffee = useCallback(() => {
+    return client.query<{
+      warehouseRoastedCoffees: WarehouseRoastedCoffeeListItem[];
+    }>({
+      query: WarehouseRoastedCoffeeListQuery,
     });
   }, [client]);
 
@@ -141,6 +155,30 @@ export const useBuildApiClient = (
         updateGreenCoffee: SuccessResult;
       }>({
         mutation: UpdateGreenCoffeeMutation,
+        variables: data,
+      });
+    },
+    [client]
+  );
+
+  const adjustRoastedCoffeeLeftovers = useCallback(
+    (data: { roastedCoffeeId: string; newAmount: number }) => {
+      return client.mutate<{
+        adjustRoastedCoffeeLeftovers: SuccessResult;
+      }>({
+        mutation: AdjustRoastedCoffeeLeftoversMutation,
+        variables: data,
+      });
+    },
+    [client]
+  );
+
+  const useRoastedCoffeeLeftovers = useCallback(
+    (data: { roastedCoffeeId: string; amount: number }) => {
+      return client.mutate<{
+        useRoastedCoffeeLeftovers: SuccessResult;
+      }>({
+        mutation: UseRoastedCoffeeLeftoversMutation,
         variables: data,
       });
     },
@@ -258,6 +296,9 @@ export const useBuildApiClient = (
     updateGreenCoffee,
     assignRoastedCoffee,
     updateRoastedCoffee,
+    getWarehouseRoastedCoffee,
+    adjustRoastedCoffeeLeftovers,
+    useRoastedCoffeeLeftovers,
   };
 };
 

@@ -7,11 +7,11 @@ export interface Roasting {
   orders: number[];
   greenCoffeeUsed: GreenCoffee[];
   finishedBatches: {
-    roastedCoffeeId: number;
+    roastedCoffeeId: string;
     amount: number;
   }[];
   realYield: {
-    roastedCoffeeId: number;
+    roastedCoffeeId: string;
     weight: number;
   }[];
 }

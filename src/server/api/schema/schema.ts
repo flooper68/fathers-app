@@ -57,6 +57,21 @@ export const appSchema = buildSchema(`
         realYield: [RoastingRealYield]!
     }
 
+    type WarehouseRoastedCoffeeEventWithAmount {
+        type: String!
+        timestamp: String!
+        amount: Float!
+    }
+
+    type WarehouseRoastedCoffee {
+        roastedCoffeeId: ID!
+        roastedCoffeeName: String!
+        quantityOnHand: Float!
+        lastUpdateReason: String
+        lastUpdated: String
+        history: [WarehouseRoastedCoffeeEventWithAmount]!
+    }
+
     type ProductCategory {
         id: Int!
         name: String
@@ -131,6 +146,7 @@ export const appSchema = buildSchema(`
     type RootQuery {
         greenCoffees: [GreenCoffee]!
         roastedCoffees: [RoastedCoffee]!
+        warehouseRoastedCoffees: [WarehouseRoastedCoffee]!
         orders(page: Int): OrderList
         products: [Product]!
         roastings: [Roasting]!
@@ -154,6 +170,10 @@ export const appSchema = buildSchema(`
         reportRealYield(roastedCoffeeId: String!, weight: Float!): SuccessResult
         finishRoasting: SuccessResult
 
+        addRoastingLeftovers: SuccessResult
+        adjustRoastedCoffeeLeftovers(roastedCoffeeId: String!, newAmount: Float!): SuccessResult
+        useRoastedCoffeeLeftovers(roastedCoffeeId: String!, amount: Float!): SuccessResult
+        
         synchronizeProducts: Void
 
     }

@@ -18,6 +18,7 @@ import {
 import { useAppSelector } from '../store';
 import { Settings } from '../modules/settings/settings';
 import { VersionTag } from './version-tag';
+import { Warehouse } from '../modules/warehouse/warehouse';
 
 const { Header, Sider, Content } = Layout;
 
@@ -41,6 +42,7 @@ const titleMap: { [key: string]: string } = {
   '/products': 'Produkty',
   '/orders': 'Objednávky',
   '/settings': 'Nastavení Káv',
+  '/warehouse': 'Sklad',
 };
 
 const subTitleMap: { [key: string]: string } = {
@@ -48,6 +50,7 @@ const subTitleMap: { [key: string]: string } = {
   '/products': 'Zde vidíte vše o produktech.',
   '/orders': 'Zde vidíte vše o objednávkách.',
   '/settings': 'Zde můžete nastavit detaily o pražení.',
+  '/warehouse': 'Aktuální hodnoty ve skladu.',
 };
 
 export const Root: React.FunctionComponent = () => {
@@ -132,6 +135,9 @@ export const Root: React.FunctionComponent = () => {
                 </Route>
                 <Route path="/Orders">
                   <Orders />
+                </Route>
+                <Route path="/warehouse">
+                  <Warehouse />
                 </Route>
                 <Route path="/">
                   <Roastings />

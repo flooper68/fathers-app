@@ -6,6 +6,7 @@ import {
   UnorderedListOutlined,
   HomeOutlined,
   SettingOutlined,
+  InsertRowAboveOutlined,
 } from '@ant-design/icons';
 import Title from 'antd/lib/typography/Title';
 
@@ -14,6 +15,7 @@ const locationKeyMap: Record<string, string> = {
   '/orders': '2',
   '/products': '3',
   '/settings': '4',
+  '/warehouse': '5',
 };
 
 export const Navigation = () => {
@@ -43,8 +45,12 @@ export const Navigation = () => {
         <Menu.Item key="1" icon={<HomeOutlined />}>
           <Link to="">Pražení</Link>
         </Menu.Item>
+
         <Menu.Item key="2" icon={<WalletOutlined />}>
           <Link to="orders">Objednávky</Link>
+        </Menu.Item>
+        <Menu.Item key="5" icon={<InsertRowAboveOutlined />}>
+          <Link to="warehouse">Sklad</Link>
         </Menu.Item>
         <Menu.Item key="3" icon={<UnorderedListOutlined />}>
           <Link to="products">Produkty</Link>

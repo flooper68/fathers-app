@@ -1,3 +1,5 @@
+import { RoastingFinished } from '../events/roasting-finished';
+import { DomainEvent } from './../../common';
 import moment from 'moment';
 import { v4 } from 'uuid';
 
@@ -37,7 +39,7 @@ export const getStartedRoasting = (
 
 export const finishRoastedBatch = (
   roasting: Roasting,
-  roastedCoffeeId: number
+  roastedCoffeeId: string
 ): Roasting => {
   const finishedBatchExists = roasting.finishedBatches.some(
     (item) => item.roastedCoffeeId === roastedCoffeeId
@@ -72,10 +74,12 @@ export const finishRoastedBatch = (
   };
 };
 
-export const getFinishedRoasting = (roasting: Roasting): Roasting => {
+export const finishRoasting = (
+  roasting: Roasting
+): { roasting: Roasting; events: DomainEvent[] } => {
   return {
-    ...roasting,
-    status: RoastingStatus.FINISHED,
+    roasting: { ...roasting, status: RoastingStatus.FINISHED },
+    events: [new RoastingFinished(roasting)],
   };
 };
 
@@ -109,7 +113,7 @@ export const addOrderToRoasting = (
 
 export const reportRealYield = (
   roasting: Roasting,
-  roastedCoffeeId: number,
+  roastedCoffeeId: string,
   weight: number
 ): Roasting => {
   const alreadyReported = roasting.realYield.some(

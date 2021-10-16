@@ -1,5 +1,4 @@
 import { DataLoaders } from './../data-loaders/data-loaders';
-import { CatalogModule } from './../../modules/catalog/catalog-contracts';
 import { RoastingProjection } from '../../projections/roasting-projection';
 import { SalesModule } from './../../modules/sales/sales-contracts';
 import { Logger } from '../../../shared/logger';
@@ -8,8 +7,8 @@ import { RoastingModule } from '../../modules/roasting/roasting-contracts';
 export const buildRoastingResolvers = (context: {
   roastingModule: RoastingModule;
   salesModule: SalesModule;
-  catalogModule: CatalogModule;
   dataLoaders: DataLoaders;
+  roastingProjection: RoastingProjection;
 }) => {
   const createRoastingResolver = async (args: { date: string }) => {
     try {
@@ -56,7 +55,7 @@ export const buildRoastingResolvers = (context: {
     }
   };
 
-  const finishBatchResolver = async (args: { roastedCoffeeId: number }) => {
+  const finishBatchResolver = async (args: { roastedCoffeeId: string }) => {
     try {
       await context.roastingModule.finishBatch({
         roastedCoffeeId: args.roastedCoffeeId,
@@ -73,7 +72,7 @@ export const buildRoastingResolvers = (context: {
   };
 
   const reportRealYieldResolver = async (args: {
-    roastedCoffeeId: number;
+    roastedCoffeeId: string;
     weight: number;
   }) => {
     try {
@@ -107,7 +106,9 @@ export const buildRoastingResolvers = (context: {
     try {
       const roastings = await context.roastingModule.getAllRoastings();
       return roastings.map(async (item) => {
-        const projection = RoastingProjection.getFullProjection(item, context);
+        const projection = await context.roastingProjection.getFullProjection(
+          item
+        );
         const orders = await context.salesModule.getOrdersByIds(
           projection.orders
         );

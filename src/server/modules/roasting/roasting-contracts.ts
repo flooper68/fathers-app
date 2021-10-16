@@ -7,6 +7,7 @@ import {
 import { GreenCoffee } from '../../../shared/types/green-coffee';
 import { Roasting } from '../../../shared/types/roasting';
 import { GreenCoffeeEntity } from './entities/green-coffee-entity';
+import { MessageBroker } from '../../services/message-broker';
 
 export interface GreenCoffeeRepository {
   create: (greenCoffee: GreenCoffeeEntity) => Promise<void>;
@@ -45,6 +46,7 @@ export interface RoastingContext {
   roastingProductRepository: RoastingProductRepository;
   roastedCoffeeRepository: RoastedCoffeeRepository;
   greenCoffeeRepository: GreenCoffeeRepository;
+  messageBroker: MessageBroker;
 }
 
 export interface AssignProductToRoastedCoffeeProps {
@@ -96,7 +98,7 @@ export interface GetRoastingByOrderProps {
 }
 
 export interface ReportRealYieldProps {
-  roastedCoffeeId: number;
+  roastedCoffeeId: string;
   weight: number;
 }
 
@@ -105,7 +107,7 @@ export interface CreateRoastingProps {
 }
 
 export interface FinishBatchProps {
-  roastedCoffeeId: number;
+  roastedCoffeeId: string;
 }
 
 export interface RoastingModule {

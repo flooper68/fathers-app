@@ -1,3 +1,5 @@
+import { buildWarehouseResolvers } from './warehouse-resolvers';
+import { RoastingProjection } from './../../projections/roasting-projection';
 import { buildDataLoaders } from './../data-loaders/data-loaders';
 import { SalesModule } from '../../modules/sales/sales-contracts';
 import { CatalogModule } from '../../modules/catalog/catalog-contracts';
@@ -13,6 +15,9 @@ import { buildRoastedCoffeeResolvers } from './roasted-coffee-resolvers';
 import { buildRoastingResolvers } from './roasting-resolvers';
 import { SyncService } from '../../services/data-sync/data-sync';
 import { buildOrderResolvers } from './order-resolvers';
+import { WarehouseModule } from './../../modules/warehouse/warehouse-contracts';
+import { Logger } from '../../../shared/logger';
+import { WarehouseProjection } from '../../projections/warehouse-projection';
 
 export const buildAppResolver = (context: {
   syncService: SyncService;
@@ -22,6 +27,9 @@ export const buildAppResolver = (context: {
   roastingModule: RoastingModule;
   catalogModule: CatalogModule;
   salesModule: SalesModule;
+  warehouseModule: WarehouseModule;
+  roastingProjection: RoastingProjection;
+  warehouseProjection: WarehouseProjection;
 }) => {
   const dataLoaders = buildDataLoaders(context);
   const roastingResolvers = buildRoastingResolvers({ ...context, dataLoaders });
@@ -29,6 +37,10 @@ export const buildAppResolver = (context: {
   const roastedCoffeeResolvers = buildRoastedCoffeeResolvers(context);
   const productResolvers = buildProductResolvers(context);
   const orderResolvers = buildOrderResolvers({ ...context, dataLoaders });
+  const warehouseResolvers = buildWarehouseResolvers({
+    ...context,
+    dataLoaders,
+  });
 
   return {
     //Sync resolvers
@@ -47,6 +59,11 @@ export const buildAppResolver = (context: {
     createRoastedCoffee: roastedCoffeeResolvers.create,
     updateRoastedCoffee: roastedCoffeeResolvers.update,
 
+    //WarehouseRoastedCoffee resolvers
+    warehouseRoastedCoffees: warehouseResolvers.warehouseRoastedCoffees,
+    adjustRoastedCoffeeLeftovers: warehouseResolvers.adjustRoastingLeftovers,
+    useRoastedCoffeeLeftovers: warehouseResolvers.useRoastedCoffeeLeftovers,
+
     //Product resolvers
     assignProductToRoastedCoffee: productResolvers.assignProductToRoastedCoffee,
     products: productResolvers.getProducts,
@@ -60,5 +77,23 @@ export const buildAppResolver = (context: {
     reportRealYield: roastingResolvers.reportRealYieldResolver,
     startRoasting: roastingResolvers.startRoastingResolver,
     synchronizeProducts: context.syncService.syncProducts,
+
+    addRoastingLeftovers: async () => {
+      try {
+        await context.warehouseModule.addRoastingLeftovers({
+          roastedCoffeeId: '1',
+          roastingId: 'asdg',
+          amount: 1,
+          timestamp: 'Date.now()',
+        });
+
+        return { success: true };
+      } catch (e) {
+        Logger.error(`Error handling resolver`, e);
+        return {
+          success: false,
+        };
+      }
+    },
   };
 };

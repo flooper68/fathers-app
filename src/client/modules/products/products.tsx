@@ -1,6 +1,5 @@
 import { Button, Card, Descriptions, Modal, Space, Spin, Table } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import useModal from 'antd/lib/modal/useModal';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useApiClient } from '../../api/api-client';
@@ -83,7 +82,7 @@ export const Products = () => {
         ),
       },
     ],
-    []
+    [openAssignRoastedCoffee]
   );
 
   const handleOk = () => {

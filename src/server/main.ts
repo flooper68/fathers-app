@@ -1,3 +1,5 @@
+import { buildRoastingProjection } from './projections/roasting-projection';
+import { buildWarehouseProjection } from './projections/warehouse-projection';
 import express from 'express';
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
@@ -14,6 +16,10 @@ import { buildRoastingModule } from './modules/roasting/roasting-module';
 import { buildSalesModule } from './modules/sales/sales-module';
 import { withGraphqlApi } from './api/with-graphql-api';
 import { withStaticRouter } from './static-router';
+import { buildWarehouseModule } from './modules/warehouse/warehouse-module';
+import { buildWarehouseRoastedCoffeeRepository } from './modules/warehouse/repositories/warehouse-roasted-coffee-repository';
+import { buildMessageBroker } from './services/message-broker';
+import moment from 'moment';
 
 config();
 
@@ -32,22 +38,41 @@ mongoose
     app.listen(process.env.SERVER_PORT, async () => {
       Logger.info(`App listening at port ${process.env.SERVER_PORT}`);
 
+      const messageBroker = buildMessageBroker();
+
       const woocommerceClient = await buildWooCommerceClient();
       const syncService = buildDataSync(woocommerceClient);
       const greenCoffeeRepository = buildGreenCoffeeRepository();
       const roastingRepository = buildRoastingRepository();
       const roastedCoffeeRepository = buildRoastedCoffeeRepository();
       const roastingProductRepository = buildRoastingProductRepository();
+      const warehouseRoastedCoffeeRepository = buildWarehouseRoastedCoffeeRepository(
+        { messageBroker }
+      );
 
       const roastingModule = buildRoastingModule({
         roastedCoffeeRepository,
         roastingProductRepository,
         greenCoffeeRepository,
         roastingRepository,
+        messageBroker,
       });
-
       const catalogModule = buildCatalogModule();
       const salesModule = buildSalesModule();
+
+      const warehouseProjection = buildWarehouseProjection({ messageBroker });
+      await warehouseProjection.init();
+      const roastingProjection = buildRoastingProjection({
+        roastingModule,
+        salesModule,
+        catalogModule,
+      });
+
+      const warehouseModule = buildWarehouseModule({
+        warehouseRoastedCoffeeRepository,
+        roastingProjection,
+        messageBroker,
+      });
 
       withGraphqlApi({
         app,
@@ -58,11 +83,54 @@ mongoose
         roastingModule,
         catalogModule,
         salesModule,
+        warehouseModule,
+        roastingProjection,
+        warehouseProjection,
       });
 
-      await syncService.startOrderSyncJob();
+      // await syncService.startOrderSyncJob();
 
       withStaticRouter({ app });
+
+      const addStuff = async () => {
+        await warehouseModule.addRoastingLeftovers({
+          roastedCoffeeId: 'test',
+          amount: 20,
+          roastingId: '1',
+          timestamp: moment().toISOString(),
+        });
+
+        // await warehouseModule.useRoastingLeftovers({
+        //   roastedCoffeeId: 'test',
+        //   amount: 10,
+        //   roastingId: '1',
+        //   timestamp: moment().toISOString(),
+        // });
+
+        // await warehouseModule.useRoastingLeftovers({
+        //   roastedCoffeeId: 'test',
+        //   amount: 2,
+        //   roastingId: '1',
+        //   timestamp: 'asg',
+        // });
+        // await warehouseModule.useRoastingLeftovers({
+        //   roastedCoffeeId: 'test',
+        //   amount: 5,
+        //   roastingId: '1',
+        //   timestamp: 'asg',
+        // });
+
+        // await warehouseModule.adjustRoastingLeftovers({
+        //   roastedCoffeeId: 'test',
+        //   newAmount: 5,
+        //   roastingId: '1',
+        //   timestamp: 'asg',
+        // });
+      };
+
+      setTimeout(() => {
+        // addStuff();
+      }, 0);
     });
   })
 
