@@ -16,7 +16,6 @@ import { buildRoastingResolvers } from './roasting-resolvers';
 import { SyncService } from '../../services/data-sync/data-sync';
 import { buildOrderResolvers } from './order-resolvers';
 import { WarehouseModule } from './../../modules/warehouse/warehouse-contracts';
-import { Logger } from '../../../shared/logger';
 import { WarehouseProjection } from '../../projections/warehouse-projection';
 
 export const buildAppResolver = (context: {
@@ -77,23 +76,5 @@ export const buildAppResolver = (context: {
     reportRealYield: roastingResolvers.reportRealYieldResolver,
     startRoasting: roastingResolvers.startRoastingResolver,
     synchronizeProducts: context.syncService.syncProducts,
-
-    addRoastingLeftovers: async () => {
-      try {
-        await context.warehouseModule.addRoastingLeftovers({
-          roastedCoffeeId: '1',
-          roastingId: 'asdg',
-          amount: 1,
-          timestamp: 'Date.now()',
-        });
-
-        return { success: true };
-      } catch (e) {
-        Logger.error(`Error handling resolver`, e);
-        return {
-          success: false,
-        };
-      }
-    },
   };
 };

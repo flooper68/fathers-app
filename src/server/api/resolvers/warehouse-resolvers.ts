@@ -1,5 +1,3 @@
-import { WarehouseProjection } from './../../projections/warehouse-projection';
-import { DataLoaders } from './../data-loaders/data-loaders';
 import moment from 'moment';
 
 import { WarehouseModule } from './../../modules/warehouse/warehouse-contracts';
@@ -16,7 +14,8 @@ import {
   RoastingLeftoversAdjusted,
   RoastingLeftOversAdjustedType,
 } from '../../modules/warehouse/events/roasting-leftover-adjusted';
-
+import { WarehouseProjection } from './../../projections/warehouse-projection';
+import { DataLoaders } from './../data-loaders/data-loaders';
 export const buildWarehouseResolvers = (context: {
   warehouseModule: WarehouseModule;
   warehouseProjection: WarehouseProjection;

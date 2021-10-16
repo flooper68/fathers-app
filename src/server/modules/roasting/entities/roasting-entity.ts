@@ -1,19 +1,17 @@
-import { RoastingFinished } from '../events/roasting-finished';
-import { DomainEvent } from './../../common';
 import moment from 'moment';
 import { v4 } from 'uuid';
 
 import { Roasting, RoastingStatus } from '../../../../shared/types/roasting';
 import { Logger } from '../../../../shared/logger';
 import { GreenCoffee } from '../../../../shared/types/green-coffee';
+import { RoastingFinished } from '../events/roasting-finished';
+import { DomainEvent } from './../../common';
 
 export const createRoasting = (roastingDate: string): Roasting => {
   const roastingDateMoment = moment(roastingDate);
   if (!roastingDateMoment.isValid()) {
     throw new Error(`Roasting date ${roastingDate} is not valid`);
   }
-
-  console.log(roastingDate, roastingDateMoment.format());
 
   return {
     _id: v4(),

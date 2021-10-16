@@ -21,7 +21,6 @@ export const buildDataLoaders = (context: {
     async (keys: readonly string[]) => {
       //There is few of them, works for now, we will refactor this if needed
       const items = await context.roastingModule.getAllRoastedCoffees();
-      console.log(items, keys);
       return items.filter((item) => keys.includes(item.id));
     }
   );

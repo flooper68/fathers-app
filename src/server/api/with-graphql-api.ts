@@ -1,5 +1,3 @@
-import { WarehouseProjection } from './../projections/warehouse-projection';
-import { RoastingProjection } from './../projections/roasting-projection';
 import { Express } from 'express';
 import { graphqlHTTP } from 'express-graphql';
 
@@ -15,6 +13,8 @@ import {
 import { SalesModule } from '../modules/sales/sales-contracts';
 import { SyncService } from '../services/data-sync/data-sync';
 import { WarehouseModule } from './../modules/warehouse/warehouse-contracts';
+import { WarehouseProjection } from './../projections/warehouse-projection';
+import { RoastingProjection } from './../projections/roasting-projection';
 
 export const withGraphqlApi = (context: {
   app: Express;
