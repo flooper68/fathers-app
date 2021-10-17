@@ -17,13 +17,19 @@ import { getAllRoastedCoffeesUseCase } from './use-cases/get-all-roasted-coffees
 import { getAllRoastingsUseCase } from './use-cases/get-all-roastings';
 import { getRoastingByOrderUseCase } from './use-cases/get-roasting';
 import { finishBatchUseCase } from './use-cases/finish-batch';
+import PromiseQueue from 'promise-queue';
 
 export const buildRoastingModule = (
   context: RoastingContext
 ): RoastingModule => {
+  //Due to nature of mongo, we need single writer pattern to keep ordering
+  const processingQueue = new PromiseQueue(1, Infinity);
+
   return {
     assignProductToRoastedCoffee: (props) =>
-      assignProductToRoastedCoffeeUseCase(props, context),
+      processingQueue.add(() =>
+        assignProductToRoastedCoffeeUseCase(props, context)
+      ),
     createGreenCoffee: (props) => createGreenCoffeeUseCase(props, context),
     updateGreenCoffee: (props) => updateGreenCoffeeUseCase(props, context),
     getGreenCoffee: (props) => getGreenCoffeeUseCase(props, context),

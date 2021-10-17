@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 
 import { useApiClient } from '../../api/api-client';
 import { GreenCoffeeListItem } from '../../api/queries/get-green-coffee-query';
-import { ProductListItem } from '../../api/queries/get-products-query';
 import { useAppDispatch } from '../../store';
 import { GreenCoffeeFormModal } from './green-coffee-modal';
 

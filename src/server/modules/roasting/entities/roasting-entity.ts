@@ -4,14 +4,14 @@ import { v4 } from 'uuid';
 import { Roasting, RoastingStatus } from '../../../../shared/types/roasting';
 import { Logger } from '../../../../shared/logger';
 import { GreenCoffee } from '../../../../shared/types/green-coffee';
+import { RoastingFinished } from '../events/roasting-finished';
+import { DomainEvent } from './../../common';
 
 export const createRoasting = (roastingDate: string): Roasting => {
   const roastingDateMoment = moment(roastingDate);
   if (!roastingDateMoment.isValid()) {
     throw new Error(`Roasting date ${roastingDate} is not valid`);
   }
-
-  console.log(roastingDate, roastingDateMoment.format());
 
   return {
     _id: v4(),
@@ -37,7 +37,7 @@ export const getStartedRoasting = (
 
 export const finishRoastedBatch = (
   roasting: Roasting,
-  roastedCoffeeId: number
+  roastedCoffeeId: string
 ): Roasting => {
   const finishedBatchExists = roasting.finishedBatches.some(
     (item) => item.roastedCoffeeId === roastedCoffeeId
@@ -72,10 +72,12 @@ export const finishRoastedBatch = (
   };
 };
 
-export const getFinishedRoasting = (roasting: Roasting): Roasting => {
+export const finishRoasting = (
+  roasting: Roasting
+): { roasting: Roasting; events: DomainEvent[] } => {
   return {
-    ...roasting,
-    status: RoastingStatus.FINISHED,
+    roasting: { ...roasting, status: RoastingStatus.FINISHED },
+    events: [new RoastingFinished(roasting)],
   };
 };
 
@@ -109,7 +111,7 @@ export const addOrderToRoasting = (
 
 export const reportRealYield = (
   roasting: Roasting,
-  roastedCoffeeId: number,
+  roastedCoffeeId: string,
   weight: number
 ): Roasting => {
   const alreadyReported = roasting.realYield.some(

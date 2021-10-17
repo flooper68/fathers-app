@@ -1,8 +1,10 @@
+import { MessageBroker } from './../../../services/message-broker';
 import { RoastingRepository } from '../roasting-contracts';
-import { getFinishedRoasting } from '../entities/roasting-entity';
+import { finishRoasting } from '../entities/roasting-entity';
 
 export const finishRoastingUseCase = async (context: {
   roastingRepository: RoastingRepository;
+  messageBroker: MessageBroker;
 }) => {
   // There must be active roasting
   // There can be just a single active roasting at a time
@@ -19,6 +21,11 @@ export const finishRoastingUseCase = async (context: {
   }
 
   const roastingInProgress = roastingsInProgress[0];
-  const updatedRoasting = getFinishedRoasting(roastingInProgress);
-  await context.roastingRepository.save(updatedRoasting);
+  const updatedRoasting = finishRoasting(roastingInProgress);
+  await context.roastingRepository.save(updatedRoasting.roasting);
+  await Promise.all(
+    updatedRoasting.events.map((item) => {
+      return context.messageBroker.publishMessage('roasting', item);
+    })
+  );
 };
