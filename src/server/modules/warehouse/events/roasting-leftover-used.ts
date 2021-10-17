@@ -1,4 +1,4 @@
-import { DomainEvent } from '../../common';
+import { DomainEvent } from '../../common/contracts';
 
 export const RoastingLeftOversUsedType = 'ROASTING_LEFTOVER_USED';
 
@@ -8,7 +8,7 @@ interface Payload {
   timestamp: string;
 }
 
-export class RoastingLeftoversUsed implements DomainEvent {
+export class RoastingLeftoversUsed implements DomainEvent<Payload> {
   readonly type: string = RoastingLeftOversUsedType;
   constructor(public readonly payload: Payload) {}
 }

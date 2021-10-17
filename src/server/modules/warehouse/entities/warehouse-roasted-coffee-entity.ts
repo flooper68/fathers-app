@@ -1,9 +1,9 @@
+import { StateReducer } from '../../common/state-reducer';
 import {
-  BusinessError,
   ReducerMap,
+  BusinessError,
   ReducerState,
-  StateReducer,
-} from '../../common';
+} from '../../common/contracts';
 import {
   RoastingLeftoversAdded,
   RoastingLeftOversAddedType,

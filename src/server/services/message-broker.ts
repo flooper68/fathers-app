@@ -4,41 +4,11 @@ import { model, Schema, Document } from 'mongoose';
 import PromiseQueue from 'promise-queue';
 
 import { Logger } from '../../shared/logger';
-
-export interface Message<Payload> {
-  type: string;
-  payload: Payload;
-}
-
-export interface OrderedMessage<Payload> extends Message<Payload> {
-  position: number;
-}
-
-export interface MessageBroker {
-  publishMessage: <Payload>(
-    stream: string,
-    message: Message<Payload>
-  ) => Promise<void>;
-  //TODO add option to unsubscribe
-  consumeMessage: <Payload>(
-    stream: string,
-    type: string,
-    handler: (message: OrderedMessage<Payload>) => void
-  ) => void;
-  consumeAll: <Payload>(
-    stream: string,
-    handler: (message: OrderedMessage<Payload>) => void
-  ) => void;
-  getMessage: (
-    stream: string,
-    position: number
-  ) => Promise<OrderedMessage<unknown> | undefined>;
-  getMessagesFrom: (
-    stream: string,
-    position: number,
-    amount: number
-  ) => Promise<OrderedMessage<unknown>[]>;
-}
+import {
+  Message,
+  MessageBroker,
+  OrderedMessage,
+} from '../modules/common/contracts';
 
 const SCHEMA_VERSION = 1;
 const EVENTS_LIMIT_PER_DOCUMENT = 1000;

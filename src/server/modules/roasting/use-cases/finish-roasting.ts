@@ -1,11 +1,10 @@
-import { MessageBroker } from './../../../services/message-broker';
-import { RoastingRepository } from '../roasting-contracts';
+import {
+  RoastingContext,
+  ROASTING_MESSAGE_STREAM,
+} from './../roasting-contracts';
 import { finishRoasting } from '../entities/roasting-entity';
 
-export const finishRoastingUseCase = async (context: {
-  roastingRepository: RoastingRepository;
-  messageBroker: MessageBroker;
-}) => {
+export const finishRoastingUseCase = async (context: RoastingContext) => {
   // There must be active roasting
   // There can be just a single active roasting at a time
   // All batches must be finished and all real yields reported ??
@@ -25,7 +24,10 @@ export const finishRoastingUseCase = async (context: {
   await context.roastingRepository.save(updatedRoasting.roasting);
   await Promise.all(
     updatedRoasting.events.map((item) => {
-      return context.messageBroker.publishMessage('roasting', item);
+      return context.messageBroker.publishMessage(
+        ROASTING_MESSAGE_STREAM,
+        item
+      );
     })
   );
 };

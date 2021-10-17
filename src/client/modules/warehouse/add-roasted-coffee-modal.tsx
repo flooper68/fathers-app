@@ -1,5 +1,5 @@
-import { Modal, Button, Form, InputNumber, Select } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Modal, Button, Form, InputNumber, Select, notification } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
@@ -22,12 +22,12 @@ export const AddWarehouseRoastedCoffeeModal = (props: {
 
   const { adjustRoastedCoffeeLeftovers, getRoastedCoffees } = useApiClient();
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     props.onClose();
     form.resetFields();
-  };
+  }, [props, form]);
 
-  const onSave = async () => {
+  const onSave = useCallback(async () => {
     try {
       const values = await form.validateFields();
       await adjustRoastedCoffeeLeftovers({
@@ -35,21 +35,31 @@ export const AddWarehouseRoastedCoffeeModal = (props: {
       });
       props.onClose();
     } catch (e) {
+      notification.error({
+        message: 'Chyba při ukládání dat',
+      });
       Logger.error(e);
     }
-  };
+  }, [form, adjustRoastedCoffeeLeftovers, props]);
 
   useEffect(() => {
     (async () => {
-      const result = await getRoastedCoffees();
-      setRoastedCoffees(
-        result.data.roastedCoffees.filter(
-          (item) =>
-            !props.context
-              .map((coffee) => coffee.roastedCoffeeId)
-              .includes(item.id)
-        )
-      );
+      try {
+        const result = await getRoastedCoffees();
+        setRoastedCoffees(
+          result.data.roastedCoffees.filter(
+            (item) =>
+              !props.context
+                .map((coffee) => coffee.roastedCoffeeId)
+                .includes(item.id)
+          )
+        );
+      } catch (e) {
+        notification.error({
+          message: 'Chyba při načítání dat',
+        });
+        Logger.error(`Error loading warehouse roasted coffee list`, e);
+      }
     })();
   }, [getRoastedCoffees, props.context]);
 

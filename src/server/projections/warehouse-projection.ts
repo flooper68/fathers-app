@@ -2,7 +2,6 @@ import PromiseQueue from 'promise-queue';
 import { model, Schema, Document } from 'mongoose';
 
 import { runPromisesInSequence } from './../services/promise-utils';
-import { MessageBroker, OrderedMessage } from './../services/message-broker';
 import {
   RoastingLeftoversAdded,
   RoastingLeftOversAddedType,
@@ -16,7 +15,12 @@ import {
   RoastingLeftOversUsedType,
 } from '../modules/warehouse/events/roasting-leftover-used';
 import { Logger } from './../../shared/logger';
-import { DomainEvent } from './../modules/common';
+import {
+  DomainEvent,
+  MessageBroker,
+  OrderedMessage,
+} from '../modules/common/contracts';
+import { WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM } from '../modules/warehouse/warehouse-contracts';
 
 interface WarehouseRoastedCofffeProjection {
   roastedCoffeeId: string;
@@ -48,7 +52,7 @@ const schema = new Schema({
 });
 
 const MongooseModel = model<WarehouseRoastedCofffeProjectionDocument>(
-  'warehouseRoastedCoffeeProjection',
+  'warehouse-roasted-coffee-projection',
   schema
 );
 
@@ -61,7 +65,7 @@ export const buildWarehouseProjection = (context: {
 
   const reduceRoastedCoffee = (
     state: WarehouseRoastedCofffeProjection,
-    event: DomainEvent
+    event: DomainEvent<unknown>
   ) => {
     switch (event.type) {
       case RoastingLeftOversAddedType: {
@@ -136,7 +140,7 @@ export const buildWarehouseProjection = (context: {
 
   const recalculateFromLast = async () => {
     let messages = await context.messageBroker.getMessagesFrom(
-      'warehouse-events',
+      WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM,
       lastPosition + 1,
       100
     );
@@ -144,7 +148,7 @@ export const buildWarehouseProjection = (context: {
     while (messages.length !== 0) {
       await runPromisesInSequence(messages, addEventForProcessing);
       messages = await context.messageBroker.getMessagesFrom(
-        'warehouse-events',
+        WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM,
         lastPosition + 1,
         100
       );
@@ -158,7 +162,10 @@ export const buildWarehouseProjection = (context: {
     Logger.debug(
       `Warehouse projection has caught up, subscribing to new events`
     );
-    context.messageBroker.consumeAll('warehouse-events', addEventForProcessing);
+    context.messageBroker.consumeAll(
+      WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM,
+      addEventForProcessing
+    );
   };
 
   const getWarehouseRoastedCoffee = async (

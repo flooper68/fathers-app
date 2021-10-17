@@ -1,7 +1,17 @@
-import { Button, Card, Descriptions, Modal, Space, Spin, Table } from 'antd';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Modal,
+  notification,
+  Space,
+  Spin,
+  Table,
+} from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { ProductListItem } from '../../api/queries/get-products-query';
 import { getProductSyncInProgress, syncActions } from '../../root/sync';
@@ -85,27 +95,41 @@ export const Products = () => {
     [openAssignRoastedCoffee]
   );
 
-  const handleOk = () => {
+  const handleOk = useCallback(() => {
     setModalOpened(false);
-  };
+  }, []);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setModalOpened(false);
-  };
+  }, []);
 
-  const synchronize = useCallback(() => {
-    dispatch(
-      syncActions.updateProductSyncState({
-        productSyncInProgress: true,
-      })
-    );
-    syncProducts();
+  const synchronize = useCallback(async () => {
+    try {
+      dispatch(
+        syncActions.updateProductSyncState({
+          productSyncInProgress: true,
+        })
+      );
+      await syncProducts();
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při synchronizaci dat',
+      });
+      Logger.error(`Error syncing products`, e);
+    }
   }, [dispatch, syncProducts]);
 
   useEffect(() => {
-    getProducts().then((result) => {
-      setRows(result.data.products);
-    });
+    try {
+      getProducts().then((result) => {
+        setRows(result.data.products);
+      });
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading list`, e);
+    }
   }, [getProducts, dispatch, roastedCoffeeLoadingKey]);
 
   return (

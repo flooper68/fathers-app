@@ -1,12 +1,10 @@
-import { Table } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { notification, Table } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 
+import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
-import { GreenCoffeeListItem } from '../../api/queries/get-green-coffee-query';
-import { ProductListItem } from '../../api/queries/get-products-query';
 import { RoastedCoffeeListItem } from '../../api/queries/get-roasted-coffee-query';
 import { useAppDispatch } from '../../store';
-import { GreenCoffeeFormModal } from './green-coffee-modal';
 import { RoastedCoffeeFormModal } from './roasted-coffee-modal';
 
 const columns = [
@@ -37,21 +35,31 @@ export const RoastedCoffee = (props: {
   const { getRoastedCoffees } = useApiClient();
   const dispatch = useAppDispatch();
 
-  const onModalOpen = (record: RoastedCoffeeListItem) => {
-    props.onOpenModal();
-    setModalContext(record);
-  };
+  const onModalOpen = useCallback(
+    (record: RoastedCoffeeListItem) => {
+      props.onOpenModal();
+      setModalContext(record);
+    },
+    [props]
+  );
 
-  const onModalClose = () => {
+  const onModalClose = useCallback(() => {
     props.onModalClose();
     setModalContext(null);
     setLoadingKey((state) => ++state);
-  };
+  }, [props]);
 
   useEffect(() => {
-    getRoastedCoffees().then((result) => {
-      setRows(result.data.roastedCoffees);
-    });
+    try {
+      getRoastedCoffees().then((result) => {
+        setRows(result.data.roastedCoffees);
+      });
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading warehouse roasted coffee list`, e);
+    }
   }, [getRoastedCoffees, dispatch, loadingKey]);
 
   return (

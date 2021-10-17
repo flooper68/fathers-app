@@ -1,16 +1,16 @@
 import { model, Schema, Document } from 'mongoose';
 
 import { Logger } from '../../../../shared/logger';
+import { Message, MessageBroker } from '../../common/contracts';
 import { WarehouseRoastedCoffeeEntity } from '../entities/warehouse-roasted-coffee-entity';
 import {
   WarehouseRoastedCoffeeRepository,
   WarehouseRoastingEvent,
+  WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM,
 } from '../warehouse-contracts';
-import { Message, MessageBroker } from './../../../services/message-broker';
 
 const SCHEMA_VERSION = 1;
 const EVENTS_LIMIT_PER_DOCUMENT = 1000;
-const MESSAGE_STREAM = 'warehouse-events';
 
 export interface WarehouseRoastedCoffeeDocument extends Document {
   schemaVersion: number;
@@ -42,7 +42,7 @@ const schema = new Schema({
 });
 
 const MongooseModel = model<WarehouseRoastedCoffeeDocument>(
-  'warehouseRoastedCoffee',
+  'warehouse-roasted-coffee',
   schema
 );
 
@@ -113,7 +113,10 @@ export const buildWarehouseRoastedCoffeeRepository = (context: {
       // Right now this can potentially fail without notifying other parts of the system
       await Promise.all(
         entity.uncommittedEvents.map((event: Message<unknown>) => {
-          return context.messageBroker.publishMessage(MESSAGE_STREAM, event);
+          return context.messageBroker.publishMessage(
+            WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM,
+            event
+          );
         })
       );
       Logger.debug(`Domain events published`);

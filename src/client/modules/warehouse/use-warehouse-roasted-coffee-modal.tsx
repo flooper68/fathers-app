@@ -1,5 +1,5 @@
-import { Modal, Button, Form, InputNumber } from 'antd';
-import React from 'react';
+import { Modal, Button, Form, InputNumber, notification } from 'antd';
+import React, { useCallback } from 'react';
 
 import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
@@ -16,12 +16,12 @@ export const UseWarehouseRoastedCoffeeModal = (props: {
 
   const { useRoastedCoffeeLeftovers } = useApiClient();
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     props.onClose();
     form.resetFields();
-  };
+  }, [props, form]);
 
-  const onSave = async () => {
+  const onSave = useCallback(async () => {
     if (!props.roastedCoffeeId) {
       throw new Error(`Missing product ID`);
     }
@@ -34,9 +34,12 @@ export const UseWarehouseRoastedCoffeeModal = (props: {
       });
       props.onClose();
     } catch (e) {
+      notification.error({
+        message: 'Chyba při ukládání dat',
+      });
       Logger.error(e);
     }
-  };
+  }, [form, props, useRoastedCoffeeLeftovers]);
 
   return (
     <Modal

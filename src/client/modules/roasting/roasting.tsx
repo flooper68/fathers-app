@@ -1,4 +1,4 @@
-import { Tabs } from 'antd';
+import { notification, Tabs } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { Logger } from '../../../shared/logger';
@@ -37,7 +37,10 @@ export const Roastings = () => {
       setPlannedRoasting(plannedRoasting || null);
       setCurrentRoasting(roastingInProgress || null);
     } catch (e) {
-      Logger.error(e);
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading data`, e);
     }
   }, [apiClient]);
 
@@ -46,6 +49,9 @@ export const Roastings = () => {
       await apiClient.finishRoasting();
       await getRoastingData();
     } catch (e) {
+      notification.error({
+        message: 'Nastala chyba při ukládání dat',
+      });
       Logger.error(`Error finishing roasting`, e);
     }
   }, [apiClient, getRoastingData]);
@@ -55,6 +61,9 @@ export const Roastings = () => {
       try {
         await apiClient.finishBatch(roastedCoffeeId);
         await getRoastingData();
+        notification.error({
+          message: 'Nastala chyba při ukládání dat',
+        });
       } catch (e) {
         Logger.error(`Error finishing roasting`, e);
       }
@@ -68,6 +77,9 @@ export const Roastings = () => {
         await apiClient.reportRealYield(roastedCoffeeId, weight);
         await getRoastingData();
       } catch (e) {
+        notification.error({
+          message: 'Nastala chyba při ukládání dat',
+        });
         Logger.error(`Error reporting real yield roasting`, e);
       }
     },
@@ -79,6 +91,9 @@ export const Roastings = () => {
       await apiClient.startRoasting();
       await getRoastingData();
     } catch (e) {
+      notification.error({
+        message: 'Nastala chyba při začínání pražení',
+      });
       Logger.error(`Error closing planning`, e);
     }
   }, [apiClient, getRoastingData]);
@@ -89,6 +104,9 @@ export const Roastings = () => {
         await apiClient.createRoasting(date);
         await getRoastingData();
       } catch (e) {
+        notification.error({
+          message: 'Nastala chyba při vytváření pražení',
+        });
         Logger.error(`Error creating planning`, e);
       }
     },
@@ -96,7 +114,14 @@ export const Roastings = () => {
   );
 
   useEffect(() => {
-    getRoastingData();
+    try {
+      getRoastingData();
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading warehouse roasted coffee list`, e);
+    }
   }, [getRoastingData]);
 
   return (

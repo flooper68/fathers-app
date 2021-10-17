@@ -1,9 +1,12 @@
-import { MessageBroker } from './../../services/message-broker';
+import { MessageBroker } from '../common/contracts';
 import { RoastingProjection } from './../../projections/roasting-projection';
 import { WarehouseRoastedCoffeeEntity } from './entities/warehouse-roasted-coffee-entity';
 import { RoastingLeftoversAdded } from './events/roasting-leftover-added';
 import { RoastingLeftoversAdjusted } from './events/roasting-leftover-adjusted';
 import { RoastingLeftoversUsed } from './events/roasting-leftover-used';
+
+export const WAREHOUSE_ROASTED_COFFEE_MESSAGE_STREAM =
+  'warehouse-roasted-coffee';
 
 export type WarehouseRoastingEvent =
   | RoastingLeftoversUsed
