@@ -7,7 +7,9 @@ import {
 import { GreenCoffee } from '../../../shared/types/green-coffee';
 import { Roasting } from '../../../shared/types/roasting';
 import { GreenCoffeeEntity } from './entities/green-coffee-entity';
-import { MessageBroker } from '../../services/message-broker';
+import { MessageBroker } from '../common/contracts';
+
+export const ROASTING_MESSAGE_STREAM = 'roasting';
 
 export interface GreenCoffeeRepository {
   create: (greenCoffee: GreenCoffeeEntity) => Promise<void>;

@@ -1,5 +1,5 @@
-import { Modal, Button, Input, Form, Select } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Modal, Button, Form, Select, notification } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
@@ -22,12 +22,12 @@ export const AssignRoastedCoffeeModal = (props: {
 
   const { assignRoastedCoffee, getRoastedCoffees } = useApiClient();
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     props.onClose();
     form.resetFields();
-  };
+  }, [props, form]);
 
-  const onSave = async () => {
+  const onSave = useCallback(async () => {
     if (!props.id) {
       throw new Error(`Missing product ID`);
     }
@@ -38,13 +38,20 @@ export const AssignRoastedCoffeeModal = (props: {
     } catch (e) {
       Logger.error(e);
     }
-  };
+  }, [props, form, assignRoastedCoffee]);
 
   useEffect(() => {
-    (async () => {
-      const result = await getRoastedCoffees();
-      setRoastedCoffees(result.data.roastedCoffees);
-    })();
+    try {
+      (async () => {
+        const result = await getRoastedCoffees();
+        setRoastedCoffees(result.data.roastedCoffees);
+      })();
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading list`, e);
+    }
   }, [getRoastedCoffees]);
 
   return (

@@ -1,3 +1,4 @@
+import { Logger } from './../../shared/logger';
 import { UpdateRoastedCoffeeMutation } from './queries/update-roasted-coffee-mutation';
 import { AssignRoastedCoffeeMutation } from './queries/assign-roasted-coffee-mutation';
 import { CreateRoastedCoffeeMutation } from './queries/create-roasted-coffee-mutation';
@@ -9,7 +10,7 @@ import { CreateGreenCoffeeMutation } from './queries/create-green-coffee-mutatio
 import { ReportRealYieldMutation } from './queries/report-real-yield-mutation';
 import { FinishBatchMutation } from './queries/finish-batch-mutation';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 
 import { SuccessResult } from './api-types';
 import { CreateRoastingMutation } from './queries/create-roasting-mutation';
@@ -42,6 +43,21 @@ import { UseRoastedCoffeeLeftoversMutation } from './queries/use-roasted-coffee-
 export const useBuildApiClient = (
   client: ApolloClient<NormalizedCacheObject>
 ) => {
+  const buildApiQuery = useCallback(
+    <Data, Result extends { errors?: unknown }>(
+      query: (data?: Data) => Promise<Result>
+    ) => async (data?: Data) => {
+      const result = await query(data);
+
+      if (result.errors) {
+        Logger.error(`GraphQl errors`, result);
+        throw new Error(`Api Client error`);
+      }
+      return result;
+    },
+    []
+  );
+
   const getProducts = useCallback(() => {
     return client.query<{
       products: ProductListItem[];
@@ -86,13 +102,17 @@ export const useBuildApiClient = (
     });
   }, [client]);
 
-  const getWarehouseRoastedCoffee = useCallback(() => {
-    return client.query<{
-      warehouseRoastedCoffees: WarehouseRoastedCoffeeListItem[];
-    }>({
-      query: WarehouseRoastedCoffeeListQuery,
-    });
-  }, [client]);
+  const getWarehouseRoastedCoffee = useMemo(
+    () =>
+      buildApiQuery(() => {
+        return client.query<{
+          warehouseRoastedCoffees: WarehouseRoastedCoffeeListItem[];
+        }>({
+          query: WarehouseRoastedCoffeeListQuery,
+        });
+      }),
+    [client, buildApiQuery]
+  );
 
   const getSyncState = useCallback(() => {
     return client.query<{

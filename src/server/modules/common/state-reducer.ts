@@ -1,23 +1,15 @@
-export class BusinessError extends Error {}
-
-export interface DomainEvent {
-  readonly type: string;
-  readonly payload: unknown;
-}
-
-export interface ReducerState {
-  version: number;
-}
-
-export type ReducerMap<State extends ReducerState, EventType> = Record<
-  string,
-  (state: State, event: EventType) => State
->;
+import {
+  DomainEvent,
+  ReducerMap,
+  BusinessError,
+  Reducer,
+  ReducerState,
+} from './contracts';
 
 export class StateReducer<
   State extends ReducerState,
-  EventType extends DomainEvent
-> {
+  EventType extends DomainEvent<unknown>
+> implements Reducer<EventType, State> {
   private _currentState: State;
 
   private readonly _reducers: ReducerMap<State, EventType>;

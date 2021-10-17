@@ -1,6 +1,7 @@
-import { Table } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { notification, Table } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 
+import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { GreenCoffeeListItem } from '../../api/queries/get-green-coffee-query';
 import { useAppDispatch } from '../../store';
@@ -38,21 +39,31 @@ export const GreenCoffee = (props: {
   const { getGreenCoffees } = useApiClient();
   const dispatch = useAppDispatch();
 
-  const onModalOpen = (record: GreenCoffeeListItem) => {
-    props.onOpenModal();
-    setModalContext(record);
-  };
+  const onModalOpen = useCallback(
+    (record: GreenCoffeeListItem) => {
+      props.onOpenModal();
+      setModalContext(record);
+    },
+    [props]
+  );
 
-  const onModalClose = () => {
+  const onModalClose = useCallback(() => {
     props.onModalClose();
     setModalContext(null);
     setLoadingKey((state) => ++state);
-  };
+  }, [props]);
 
   useEffect(() => {
-    getGreenCoffees().then((result) => {
-      setRows(result.data.greenCoffees);
-    });
+    try {
+      getGreenCoffees().then((result) => {
+        setRows(result.data.greenCoffees);
+      });
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading warehouse roasted coffee list`, e);
+    }
   }, [getGreenCoffees, dispatch, loadingKey]);
 
   return (

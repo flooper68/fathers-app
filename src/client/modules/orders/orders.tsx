@@ -1,4 +1,12 @@
-import { Button, Descriptions, List, Modal, Table, Select } from 'antd';
+import {
+  Button,
+  Descriptions,
+  List,
+  Modal,
+  Table,
+  Select,
+  notification,
+} from 'antd';
 import moment from 'moment';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -26,31 +34,45 @@ export const Orders = () => {
 
   const apiClient = useApiClient();
 
-  const handleOk = () => {
+  const handleOk = useCallback(() => {
     setModalOpened(false);
-  };
+  }, []);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setModalOpened(false);
-  };
+  }, []);
 
   const loadFirstPage = useCallback(() => {
-    apiClient.getOrders(1).then((result) => {
-      setRows(result.data.orders.rows);
-      setPageCount(result.data.orders.pageCount);
-      setCurrentPage(1);
-    });
+    try {
+      apiClient.getOrders(1).then((result) => {
+        setRows(result.data.orders.rows);
+        setPageCount(result.data.orders.pageCount);
+        setCurrentPage(1);
+      });
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading list`, e);
+    }
   }, [apiClient]);
 
   const fetchMore = useCallback(async () => {
-    if (currentPage + 1 > pageCount) {
-      return;
+    try {
+      if (currentPage + 1 > pageCount) {
+        return;
+      }
+      Logger.debug(`Fetching more rows, page ${currentPage + 1}`);
+      const result = await apiClient.getOrders(currentPage + 1);
+      setRows((state) => [...state, ...result.data.orders.rows]);
+      setPageCount(result.data.orders.pageCount);
+      setCurrentPage((state) => state + 1);
+    } catch (e) {
+      notification.error({
+        message: 'Chyba při načítání dat',
+      });
+      Logger.error(`Error loading list`, e);
     }
-    Logger.debug(`Fetching more rows, page ${currentPage + 1}`);
-    const result = await apiClient.getOrders(currentPage + 1);
-    setRows((state) => [...state, ...result.data.orders.rows]);
-    setPageCount(result.data.orders.pageCount);
-    setCurrentPage((state) => state + 1);
   }, [apiClient, currentPage, pageCount]);
 
   const selectRoasting = useCallback(async () => {
@@ -61,6 +83,9 @@ export const Orders = () => {
     try {
       await apiClient.selectOrdersRoasting(selectedRoasting, orderId);
     } catch (e) {
+      notification.error({
+        message: 'Chyba při ukládání dat',
+      });
       Logger.error(`Error adding order to roasting`, e);
     }
     setChooseRoastingModalOpened(false);
@@ -82,6 +107,9 @@ export const Orders = () => {
         );
         setPlannedRoastings(planned);
       } catch (e) {
+        notification.error({
+          message: 'Chyba při načítání dat',
+        });
         Logger.error(`Error fetching roastings.`);
       }
     })();

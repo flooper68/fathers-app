@@ -6,8 +6,9 @@ import {
   RoastingFinished,
   RoastingFinishedType,
 } from '../../roasting/events/roasting-finished';
-import { MessageBroker } from './../../../services/message-broker';
 import { Logger } from '../../../../shared/logger';
+import { MessageBroker } from '../../common/contracts';
+import { ROASTING_MESSAGE_STREAM } from '../../roasting/roasting-contracts';
 
 export const roastingFinishedSubscriber = (context: {
   messageBroker: MessageBroker;
@@ -15,7 +16,7 @@ export const roastingFinishedSubscriber = (context: {
   warehouseModule: WarehouseModule;
 }) => {
   context.messageBroker.consumeMessage(
-    'roasting',
+    ROASTING_MESSAGE_STREAM,
     RoastingFinishedType,
     //TODO this should be idempotent so the system can handle receiving the same message twice
     async (event: RoastingFinished) => {

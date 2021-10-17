@@ -1,4 +1,4 @@
-import { Modal, Button, Input, InputNumber, Form, Select } from 'antd';
+import { Modal, Button, Input, Form, Select } from 'antd';
 import React, { useCallback } from 'react';
 
 import { Logger } from '../../../shared/logger';

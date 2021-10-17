@@ -1,14 +1,15 @@
-import { Button, Space, Table } from 'antd';
+import { Button, notification, Space, Table } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { WarehouseRoastedCoffeeListItem } from '../../api/queries/get-warehouse-roasted-coffee';
 import { useAppModal } from '../common/use-app-modal';
 import { AddWarehouseRoastedCoffeeModal } from './add-roasted-coffee-modal';
 import { AdjustWarehouseRoastedCoffeeModal } from './adjust-warehouse-roasted-coffee-modal';
 import { TranslateReasonMap } from './type-translation';
-import { UseWarehouseRoastedCoffeeModal } from './use-warehouse-roasted-coffee-modal copy';
+import { UseWarehouseRoastedCoffeeModal } from './use-warehouse-roasted-coffee-modal';
 import { WarehouseRoastedCoffeeModal } from './warehouse-roasted-coffee-detail';
 
 export const Warehouse = () => {
@@ -56,7 +57,7 @@ export const Warehouse = () => {
         dataIndex: 'quantityOnHand',
         key: 'quantityOnHand',
         render: (quantityOnHand: number) => (
-          <span>{quantityOnHand.toFixed(2)}</span>
+          <span>{quantityOnHand?.toFixed(2)}</span>
         ),
       },
       {
@@ -106,9 +107,17 @@ export const Warehouse = () => {
   );
 
   useEffect(() => {
-    getWarehouseRoastedCoffee().then((result) => {
-      setRows(result.data.warehouseRoastedCoffees);
-    });
+    (async () => {
+      try {
+        const result = await getWarehouseRoastedCoffee();
+        setRows(result.data.warehouseRoastedCoffees);
+      } catch (e) {
+        notification.error({
+          message: 'Chyba při načítání dat',
+        });
+        Logger.error(`Error loading warehouse roasted coffee list`, e);
+      }
+    })();
   }, [
     getWarehouseRoastedCoffee,
     loadingKey,

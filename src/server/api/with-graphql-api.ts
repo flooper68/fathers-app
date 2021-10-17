@@ -1,3 +1,4 @@
+import { Logger } from './../../shared/logger';
 import { Express } from 'express';
 import { graphqlHTTP } from 'express-graphql';
 
@@ -35,6 +36,10 @@ export const withGraphqlApi = (context: {
       schema: appSchema,
       rootValue: buildAppResolver(context),
       graphiql: true,
+      customFormatErrorFn: (error) => {
+        Logger.error(`Graphql error`, error);
+        return error;
+      },
     })
   );
 };

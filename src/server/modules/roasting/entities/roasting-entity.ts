@@ -5,7 +5,7 @@ import { Roasting, RoastingStatus } from '../../../../shared/types/roasting';
 import { Logger } from '../../../../shared/logger';
 import { GreenCoffee } from '../../../../shared/types/green-coffee';
 import { RoastingFinished } from '../events/roasting-finished';
-import { DomainEvent } from './../../common';
+import { DomainEvent } from '../../common/contracts';
 
 export const createRoasting = (roastingDate: string): Roasting => {
   const roastingDateMoment = moment(roastingDate);
@@ -74,7 +74,7 @@ export const finishRoastedBatch = (
 
 export const finishRoasting = (
   roasting: Roasting
-): { roasting: Roasting; events: DomainEvent[] } => {
+): { roasting: Roasting; events: DomainEvent<unknown>[] } => {
   return {
     roasting: { ...roasting, status: RoastingStatus.FINISHED },
     events: [new RoastingFinished(roasting)],

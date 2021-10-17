@@ -8,7 +8,7 @@ export const PlannedRoasting = (props: { roasting: RoastingListItem }) => {
   const { roasting } = props;
 
   return (
-    <div style={{}}>
+    <div>
       <h2>{moment(roasting.roastingDate).format('LL')}</h2>
       <div
         style={{

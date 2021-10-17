@@ -1,6 +1,6 @@
-import { WarehouseProjection } from './../../projections/warehouse-projection';
 import DataLoader from 'dataloader';
 
+import { WarehouseProjection } from './../../projections/warehouse-projection';
 import { RoastingModule } from '../../modules/roasting/roasting-contracts';
 import { SalesModule } from '../../modules/sales/sales-contracts';
 
