@@ -14,7 +14,8 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "strictPropertyInitialization": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "downlevelIteration": true
   },
   "include": ["src/server", "src/shared", "scripts", "migrations"],
   "exclude": ["src/client"]

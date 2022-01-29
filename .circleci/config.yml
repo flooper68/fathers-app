@@ -86,5 +86,7 @@ jobs:
 workflows:
   final_build:
     jobs:
+      - unit-tests
       - integration-tests
+      - build
       

@@ -65,7 +65,7 @@ mongoose
   .then(async () => {
     Logger.info(`Connected to db`);
 
-    const woocommerceClient = await buildWooCommerceClient();
+    const woocommerceClient = await buildWooCommerceClient(applicationConfig);
 
     try {
       let page = 1;

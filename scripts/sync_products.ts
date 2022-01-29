@@ -30,7 +30,7 @@ mongoose
   .then(async () => {
     Logger.info(`Connected to db`);
 
-    const woocommerceClient = await buildWooCommerceClient();
+    const woocommerceClient = await buildWooCommerceClient(applicationConfig);
 
     Logger.info('Syncing products');
 
