@@ -38,8 +38,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v4-unit-dependencies-{{ checksum "yarn.lock" }}
-            - v4-unit-dependencies-
+            - v1-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Yarn install
           command: yarn install
@@ -48,7 +47,7 @@ jobs:
             - node_modules
             - ~/.npm
             - ~/.cache
-          key: v3-unit-dependencies-{{ checksum "yarn.lock" }}
+          key: v1-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Copy shared env vars from app
           command: |
