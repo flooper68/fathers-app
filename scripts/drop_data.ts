@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
-import { config } from 'dotenv';
 
 import { Logger } from '../src/shared/logger';
+import { getApplicationConfig } from './../src/server/application-config';
 
-config();
+const applicationConfig = getApplicationConfig();
 
-Logger.info(`Stargin to drop data`);
+Logger.info(`Starting to drop data`);
 
 mongoose
   .connect(
-    `mongodb://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_DATABASE_NAME}?authSource=${process.env.MONGO_DB_AUTHENTICATION_DATABASE_NAME}`,
+    `mongodb://${applicationConfig.dbUsername}:${applicationConfig.dbPassword}@${applicationConfig.dbHost}:${applicationConfig.dbPort}/${applicationConfig.dbName}?authSource=${applicationConfig.authenticationDbName}`,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,

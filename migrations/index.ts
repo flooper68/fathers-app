@@ -1,11 +1,11 @@
 import { mongoMigrateCli } from 'mongo-migrate-ts';
 
-import { config } from 'dotenv';
+import { getApplicationConfig } from '../src/server/application-config';
 
-config();
+const applicationConfig = getApplicationConfig();
 
 mongoMigrateCli({
-  uri: `mongodb://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}`,
+  uri: `mongodb://${applicationConfig.dbUsername}:${applicationConfig.dbPassword}@${applicationConfig.dbHost}:${applicationConfig.dbPort}/${applicationConfig.dbName}?authSource=${applicationConfig.authenticationDbName}`,
   database: 'fathers',
   migrationsDir: __dirname,
   migrationsCollection: 'migrations_collection',

@@ -1,6 +1,5 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { config } from 'dotenv';
 
 import { buildRoastingRepository } from './modules/roasting/repositories/roasting-repository';
 import { buildCatalogModule } from './modules/catalog/catalog-module';
@@ -19,80 +18,83 @@ import { buildWarehouseRoastedCoffeeRepository } from './modules/warehouse/repos
 import { buildMessageBroker } from './services/message-broker';
 import { buildRoastingProjection } from './projections/roasting-projection';
 import { buildWarehouseProjection } from './projections/warehouse-projection';
+import { getApplicationContext } from './app-context';
 
-config();
+const bootstrap = async () => {
+  const context = await getApplicationContext();
+  const applicationConfig = context.applicationConfig.getConfig();
 
-const app = express();
+  const app = express();
 
-mongoose
-  .connect(
-    `mongodb://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_DATABASE_NAME}?authSource=${process.env.MONGO_DB_AUTHENTICATION_DATABASE_NAME}`,
+  await mongoose.connect(
+    `mongodb://${applicationConfig.dbUsername}:${applicationConfig.dbPassword}@${applicationConfig.dbHost}:${applicationConfig.dbPort}/${applicationConfig.dbName}?authSource=${applicationConfig.authenticationDbName}`,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     }
-  )
-  .then(() => {
-    Logger.info('Db connected');
-    app.listen(process.env.SERVER_PORT, async () => {
-      Logger.info(`App listening at port ${process.env.SERVER_PORT}`);
+  );
 
-      const messageBroker = buildMessageBroker();
+  Logger.info('Db connected');
 
-      const woocommerceClient = await buildWooCommerceClient();
-      const syncService = buildDataSync(woocommerceClient);
-      const greenCoffeeRepository = buildGreenCoffeeRepository();
-      const roastingRepository = buildRoastingRepository();
-      const roastedCoffeeRepository = buildRoastedCoffeeRepository();
-      const roastingProductRepository = buildRoastingProductRepository();
-      const warehouseRoastedCoffeeRepository = buildWarehouseRoastedCoffeeRepository(
-        { messageBroker }
-      );
+  Logger.info(`App listening at port ${applicationConfig.serverPort}`);
 
-      const roastingModule = buildRoastingModule({
-        roastedCoffeeRepository,
-        roastingProductRepository,
-        greenCoffeeRepository,
-        roastingRepository,
-        messageBroker,
-      });
-      const catalogModule = buildCatalogModule();
-      const salesModule = buildSalesModule();
+  const messageBroker = buildMessageBroker();
 
-      const warehouseProjection = buildWarehouseProjection({ messageBroker });
-      await warehouseProjection.init();
-      const roastingProjection = buildRoastingProjection({
-        roastingModule,
-        salesModule,
-        catalogModule,
-      });
+  const woocommerceClient = await buildWooCommerceClient(applicationConfig);
+  const syncService = buildDataSync(woocommerceClient);
+  const greenCoffeeRepository = buildGreenCoffeeRepository();
+  const roastingRepository = buildRoastingRepository();
+  const roastedCoffeeRepository = buildRoastedCoffeeRepository();
+  const roastingProductRepository = buildRoastingProductRepository();
+  const warehouseRoastedCoffeeRepository = buildWarehouseRoastedCoffeeRepository(
+    { messageBroker }
+  );
 
-      const warehouseModule = buildWarehouseModule({
-        warehouseRoastedCoffeeRepository,
-        roastingProjection,
-        messageBroker,
-      });
-
-      withGraphqlApi({
-        app,
-        syncService,
-        greenCoffeeRepository,
-        roastedCoffeeRepository,
-        roastingProductRepository,
-        roastingModule,
-        catalogModule,
-        salesModule,
-        warehouseModule,
-        roastingProjection,
-        warehouseProjection,
-      });
-
-      await syncService.startOrderSyncJob();
-
-      withStaticRouter({ app });
-    });
-  })
-
-  .catch((e) => {
-    Logger.error('Error connecting to db', e);
+  const roastingModule = buildRoastingModule({
+    roastedCoffeeRepository,
+    roastingProductRepository,
+    greenCoffeeRepository,
+    roastingRepository,
+    messageBroker,
   });
+  const catalogModule = buildCatalogModule();
+  const salesModule = buildSalesModule();
+
+  const warehouseProjection = buildWarehouseProjection({ messageBroker });
+  await warehouseProjection.init();
+  const roastingProjection = buildRoastingProjection({
+    roastingModule,
+    salesModule,
+    catalogModule,
+  });
+
+  const warehouseModule = buildWarehouseModule({
+    warehouseRoastedCoffeeRepository,
+    roastingProjection,
+    messageBroker,
+  });
+
+  withGraphqlApi({
+    app,
+    syncService,
+    greenCoffeeRepository,
+    roastedCoffeeRepository,
+    roastingProductRepository,
+    roastingModule,
+    catalogModule,
+    salesModule,
+    warehouseModule,
+    roastingProjection,
+    warehouseProjection,
+  });
+
+  syncService.startOrderSyncJob();
+
+  withStaticRouter({ app });
+
+  app.listen(applicationConfig.serverPort);
+
+  Logger.info(`Listening on port ${applicationConfig.serverPort}`);
+};
+
+bootstrap();

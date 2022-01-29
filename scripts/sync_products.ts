@@ -1,24 +1,27 @@
 import mongoose from 'mongoose';
-import { config } from 'dotenv';
 
 import { reducePromisesInSequence } from './../src/server/services/promise-utils';
 import { buildWooCommerceClient } from './../src/server/services/woocommerce-client';
 import { Logger } from './../src/shared/logger';
-import { fetchVariationsAndMapProducts, syncProduct } from './../src/server/services/data-sync/sync-products';
+import {
+  fetchVariationsAndMapProducts,
+  syncProduct,
+} from './../src/server/services/data-sync/sync-products';
 
 import {
   WooCommerceProductResponse,
   Product,
 } from '../src/shared/types/product';
+import { getApplicationConfig } from '../src/server/application-config';
 
-config();
+const applicationConfig = getApplicationConfig();
 
 const start = Date.now();
 Logger.info(`Started syncing some data`);
 
 mongoose
   .connect(
-    `mongodb://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_DATABASE_NAME}?authSource=${process.env.MONGO_DB_AUTHENTICATION_DATABASE_NAME}`,
+    `mongodb://${applicationConfig.dbUsername}:${applicationConfig.dbPassword}@${applicationConfig.dbHost}:${applicationConfig.dbPort}/${applicationConfig.dbName}?authSource=${applicationConfig.authenticationDbName}`,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,

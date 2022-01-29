@@ -11,6 +11,7 @@ import {
 } from '../../shared/types/product';
 import { OrderModel } from '../modules/sales/repository/order-model';
 import { OrderStatus } from '../../shared/types/order';
+import { ApplicationConfig } from '../application-config';
 
 config();
 
@@ -87,17 +88,17 @@ const buildGetAllItems = <EntityWooCommerceResponse>(
   return { rows: allData, totalCount, pagesCount };
 };
 
-export const buildWooCommerceClient = async () => {
+export const buildWooCommerceClient = async (config: ApplicationConfig) => {
   const client: WooCommerceApi = new WooCommerceRestApi({
-    url: process.env.WOOCOMMERCE_URL || '',
-    consumerKey: process.env.WOOCOMMERCE_KEY || '',
-    consumerSecret: process.env.WOOCOMMERCE_SECRET || '',
+    url: config.woocommerceUrl,
+    consumerKey: config.woocommerceKey,
+    consumerSecret: config.woocommerceSecret,
     version: 'wc/v3',
   });
 
   try {
     await client.get('');
-    Logger.info(`Connected to WooCommerce ${process.env.WOOCOMMERCE_URL}`);
+    Logger.info(`Connected to WooCommerce ${config.woocommerceUrl}`);
   } catch (e) {
     Logger.error('Can not connect to woocommerce', e);
     throw new Error('Can not establish WooCommerce connection.');
