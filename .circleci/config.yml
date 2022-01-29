@@ -28,6 +28,7 @@ jobs:
         environment:
           MONGO_INITDB_ROOT_USERNAME: father
           MONGO_INITDB_ROOT_PASSWORD: father
+      - image: cimg/node:14.18.2
     steps:
       - checkout
       - restore_cache:
