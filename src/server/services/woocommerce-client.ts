@@ -129,7 +129,7 @@ export const buildWooCommerceClient = async () => {
 
       if (!lastSavedOrder) {
         throw new Error(
-          `Can not get new orders, there is no last order. Sync old orders first.`
+          `Can not get new orders, there is no last order. Sync old orders first - to do so run "yarn sync:orders:some"`
         );
       }
 
