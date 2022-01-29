@@ -23,6 +23,7 @@ jobs:
           name: Run Jest tests
           command: yarn test
   integration-tests:
+    working_directory: ~/app
     docker:
       - image: mongo:4.4.4-bionic
         environment:
