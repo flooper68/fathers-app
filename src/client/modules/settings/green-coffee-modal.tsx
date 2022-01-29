@@ -1,8 +1,8 @@
 import { Modal, Button, Input, InputNumber, Form } from 'antd';
 import React, { useCallback } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
+import { ClientLogger } from '../../client-logger';
 
 interface FormData {
   name: string;
@@ -39,7 +39,7 @@ export const GreenCoffeeFormModal = (props: {
         onClose();
       }
     } catch (e) {
-      Logger.error(e);
+      ClientLogger.error(e);
     }
   }, [form, createGreenCoffee, onClose, updateGreenCoffee, props]);
 

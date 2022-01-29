@@ -2,10 +2,10 @@ import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import { useStore, useSelector } from 'react-redux';
 import { useCallback, useEffect } from 'react';
 
-import { Logger } from '../../shared/logger';
 import { ApiClient } from '../api/api-client';
 import { StoreState } from '../store';
 import notification from 'antd/lib/notification';
+import { ClientLogger } from '../client-logger';
 
 interface InitialState {
   lastOrderSyncTime: string;
@@ -136,7 +136,7 @@ export const useAppSync = (apiClient: ApiClient) => {
   const productSyncError = useSelector(getProductSyncErrorData);
 
   const syncState = useCallback(async () => {
-    Logger.debug(`Syncing state`);
+    ClientLogger.debug(`Syncing state`);
     try {
       const {
         data: { sync },
@@ -161,7 +161,7 @@ export const useAppSync = (apiClient: ApiClient) => {
         })
       );
     } catch (e) {
-      Logger.error(`Error syncing with server`, e);
+      ClientLogger.error(`Error syncing with server`, e);
       notifySyncError(`Nepodařilo se spojit se serverem :-( `);
     }
   }, [apiClient, store]);

@@ -1,9 +1,9 @@
 import { notification, Table } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { GreenCoffeeListItem } from '../../api/queries/get-green-coffee-query';
+import { ClientLogger } from '../../client-logger';
 import { useAppDispatch } from '../../store';
 import { GreenCoffeeFormModal } from './green-coffee-modal';
 
@@ -62,7 +62,7 @@ export const GreenCoffee = (props: {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading warehouse roasted coffee list`, e);
+      ClientLogger.error(`Error loading warehouse roasted coffee list`, e);
     }
   }, [getGreenCoffees, dispatch, loadingKey]);
 

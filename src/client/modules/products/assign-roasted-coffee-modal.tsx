@@ -1,9 +1,9 @@
 import { Modal, Button, Form, Select, notification } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { RoastedCoffeeListItem } from '../../api/queries/get-roasted-coffee-query';
+import { ClientLogger } from '../../client-logger';
 
 interface FormData {
   roastedCoffeeId: string;
@@ -36,7 +36,7 @@ export const AssignRoastedCoffeeModal = (props: {
       await assignRoastedCoffee({ id: props.id, ...values });
       props.onClose();
     } catch (e) {
-      Logger.error(e);
+      ClientLogger.error(e);
     }
   }, [props, form, assignRoastedCoffee]);
 
@@ -50,7 +50,7 @@ export const AssignRoastedCoffeeModal = (props: {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading list`, e);
+      ClientLogger.error(`Error loading list`, e);
     }
   }, [getRoastedCoffees]);
 

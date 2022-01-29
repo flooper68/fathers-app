@@ -1,7 +1,6 @@
 import notification from 'antd/lib/notification';
 import { useState, useEffect } from 'react';
-
-import { Logger } from '../../../shared/logger';
+import { ClientLogger } from '../../client-logger';
 
 export const useWholeList = <Item>(callback: () => Promise<Item[]>) => {
   const [list, setList] = useState<Item[]>([]);
@@ -16,7 +15,7 @@ export const useWholeList = <Item>(callback: () => Promise<Item[]>) => {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error fetching whole list.`, e);
+      ClientLogger.error(`Error fetching whole list.`, e);
     }
   }, [callback]);
 

@@ -2,9 +2,9 @@ import { Button, notification, Space, Table } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { WarehouseRoastedCoffeeListItem } from '../../api/queries/get-warehouse-roasted-coffee';
+import { ClientLogger } from '../../client-logger';
 import { useAppModal } from '../common/use-app-modal';
 import { AddWarehouseRoastedCoffeeModal } from './add-roasted-coffee-modal';
 import { AdjustWarehouseRoastedCoffeeModal } from './adjust-warehouse-roasted-coffee-modal';
@@ -16,13 +16,8 @@ export const Warehouse = () => {
   const [rows, setRows] = useState<WarehouseRoastedCoffeeListItem[]>([]);
 
   const { getWarehouseRoastedCoffee } = useApiClient();
-  const [
-    open,
-    close,
-    opened,
-    context,
-    loadingKey,
-  ] = useAppModal<WarehouseRoastedCoffeeListItem>();
+  const [open, close, opened, context, loadingKey] =
+    useAppModal<WarehouseRoastedCoffeeListItem>();
   const [
     openUseModal,
     closeUseModal,
@@ -115,7 +110,7 @@ export const Warehouse = () => {
         notification.error({
           message: 'Chyba při načítání dat',
         });
-        Logger.error(`Error loading warehouse roasted coffee list`, e);
+        ClientLogger.error(`Error loading warehouse roasted coffee list`, e);
       }
     })();
   }, [

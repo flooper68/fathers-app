@@ -1,10 +1,10 @@
 import { Modal, Button, Form, InputNumber, Select, notification } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { RoastedCoffeeListItem } from '../../api/queries/get-roasted-coffee-query';
 import { WarehouseRoastedCoffeeListItem } from '../../api/queries/get-warehouse-roasted-coffee';
+import { ClientLogger } from '../../client-logger';
 
 interface FormData {
   newAmount: number;
@@ -38,7 +38,7 @@ export const AddWarehouseRoastedCoffeeModal = (props: {
       notification.error({
         message: 'Chyba při ukládání dat',
       });
-      Logger.error(e);
+      ClientLogger.error(e);
     }
   }, [form, adjustRoastedCoffeeLeftovers, props]);
 
@@ -58,7 +58,7 @@ export const AddWarehouseRoastedCoffeeModal = (props: {
         notification.error({
           message: 'Chyba při načítání dat',
         });
-        Logger.error(`Error loading warehouse roasted coffee list`, e);
+        ClientLogger.error(`Error loading warehouse roasted coffee list`, e);
       }
     })();
   }, [getRoastedCoffees, props.context]);

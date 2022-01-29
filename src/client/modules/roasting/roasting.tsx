@@ -1,23 +1,19 @@
 import { notification, Tabs } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { RoastingStatus } from '../../../shared/types/roasting';
 import { useApiClient } from '../../api/api-client';
 import { RoastingListItem } from '../../api/queries/get-roastings-query';
 import { PlannedRoasting } from './planned-roasting';
 import { RoastingsList } from './roasting-list';
 import { ActiveRoasting } from './active-roasting';
+import { ClientLogger } from '../../client-logger';
 
 export const Roastings = () => {
-  const [
-    plannedRoasting,
-    setPlannedRoasting,
-  ] = useState<RoastingListItem | null>(null);
-  const [
-    currentRoasting,
-    setCurrentRoasting,
-  ] = useState<RoastingListItem | null>(null);
+  const [plannedRoasting, setPlannedRoasting] =
+    useState<RoastingListItem | null>(null);
+  const [currentRoasting, setCurrentRoasting] =
+    useState<RoastingListItem | null>(null);
   const [roastings, setRoastings] = useState<RoastingListItem[]>([]);
 
   const apiClient = useApiClient();
@@ -40,7 +36,7 @@ export const Roastings = () => {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading data`, e);
+      ClientLogger.error(`Error loading data`, e);
     }
   }, [apiClient]);
 
@@ -52,7 +48,7 @@ export const Roastings = () => {
       notification.error({
         message: 'Nastala chyba při ukládání dat',
       });
-      Logger.error(`Error finishing roasting`, e);
+      ClientLogger.error(`Error finishing roasting`, e);
     }
   }, [apiClient, getRoastingData]);
 
@@ -65,7 +61,7 @@ export const Roastings = () => {
           message: 'Nastala chyba při ukládání dat',
         });
       } catch (e) {
-        Logger.error(`Error finishing roasting`, e);
+        ClientLogger.error(`Error finishing roasting`, e);
       }
     },
     [apiClient, getRoastingData]
@@ -80,7 +76,7 @@ export const Roastings = () => {
         notification.error({
           message: 'Nastala chyba při ukládání dat',
         });
-        Logger.error(`Error reporting real yield roasting`, e);
+        ClientLogger.error(`Error reporting real yield roasting`, e);
       }
     },
     [apiClient, getRoastingData]
@@ -94,7 +90,7 @@ export const Roastings = () => {
       notification.error({
         message: 'Nastala chyba při začínání pražení',
       });
-      Logger.error(`Error closing planning`, e);
+      ClientLogger.error(`Error closing planning`, e);
     }
   }, [apiClient, getRoastingData]);
 
@@ -107,7 +103,7 @@ export const Roastings = () => {
         notification.error({
           message: 'Nastala chyba při vytváření pražení',
         });
-        Logger.error(`Error creating planning`, e);
+        ClientLogger.error(`Error creating planning`, e);
       }
     },
     [apiClient, getRoastingData]
@@ -120,7 +116,7 @@ export const Roastings = () => {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading warehouse roasted coffee list`, e);
+      ClientLogger.error(`Error loading warehouse roasted coffee list`, e);
     }
   }, [getRoastingData]);
 

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
-import 'antd/dist/antd.css';
+import 'antd/dist/antd.min.css';
 import './index.css';
 import { Root } from './root/root';
 import reportWebVitals from './reportWebVitals';

@@ -1,8 +1,8 @@
 import { Modal, Button, Form, InputNumber, notification } from 'antd';
 import React, { useCallback } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
+import { ClientLogger } from '../../client-logger';
 
 interface FormData {
   newAmount: number;
@@ -36,7 +36,7 @@ export const AdjustWarehouseRoastedCoffeeModal = (props: {
       notification.error({
         message: 'Chyba při ukládání dat',
       });
-      Logger.error(e);
+      ClientLogger.error(e);
     }
   }, [props, form, adjustRoastedCoffeeLeftovers]);
 

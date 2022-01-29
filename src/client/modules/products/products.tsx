@@ -11,9 +11,9 @@ import {
 import Meta from 'antd/lib/card/Meta';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { ProductListItem } from '../../api/queries/get-products-query';
+import { ClientLogger } from '../../client-logger';
 import { getProductSyncInProgress, syncActions } from '../../root/sync';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useAppModal } from '../common/use-app-modal';
@@ -115,7 +115,7 @@ export const Products = () => {
       notification.error({
         message: 'Chyba při synchronizaci dat',
       });
-      Logger.error(`Error syncing products`, e);
+      ClientLogger.error(`Error syncing products`, e);
     }
   }, [dispatch, syncProducts]);
 
@@ -128,7 +128,7 @@ export const Products = () => {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading list`, e);
+      ClientLogger.error(`Error loading list`, e);
     }
   }, [getProducts, dispatch, roastedCoffeeLoadingKey]);
 

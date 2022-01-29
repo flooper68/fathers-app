@@ -1,9 +1,9 @@
 import { notification, Table } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
 import { RoastedCoffeeListItem } from '../../api/queries/get-roasted-coffee-query';
+import { ClientLogger } from '../../client-logger';
 import { useAppDispatch } from '../../store';
 import { RoastedCoffeeFormModal } from './roasted-coffee-modal';
 
@@ -27,10 +27,8 @@ export const RoastedCoffee = (props: {
 }) => {
   const [loadingKey, setLoadingKey] = useState(0);
   const [rows, setRows] = useState<RoastedCoffeeListItem[]>([]);
-  const [
-    modalContext,
-    setModalContext,
-  ] = useState<RoastedCoffeeListItem | null>(null);
+  const [modalContext, setModalContext] =
+    useState<RoastedCoffeeListItem | null>(null);
 
   const { getRoastedCoffees } = useApiClient();
   const dispatch = useAppDispatch();
@@ -58,7 +56,7 @@ export const RoastedCoffee = (props: {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading warehouse roasted coffee list`, e);
+      ClientLogger.error(`Error loading warehouse roasted coffee list`, e);
     }
   }, [getRoastedCoffees, dispatch, loadingKey]);
 

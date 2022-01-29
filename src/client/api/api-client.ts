@@ -1,4 +1,3 @@
-import { Logger } from './../../shared/logger';
 import { UpdateRoastedCoffeeMutation } from './queries/update-roasted-coffee-mutation';
 import { AssignRoastedCoffeeMutation } from './queries/assign-roasted-coffee-mutation';
 import { CreateRoastedCoffeeMutation } from './queries/create-roasted-coffee-mutation';
@@ -39,22 +38,24 @@ import {
 } from './queries/get-warehouse-roasted-coffee';
 import { AdjustRoastedCoffeeLeftoversMutation } from './queries/adjust-roasted-coffee-leftovers-mutation ';
 import { UseRoastedCoffeeLeftoversMutation } from './queries/use-roasted-coffee-leftovers-mutation';
+import { ClientLogger } from '../client-logger';
 
 export const useBuildApiClient = (
   client: ApolloClient<NormalizedCacheObject>
 ) => {
   const buildApiQuery = useCallback(
     <Data, Result extends { errors?: unknown }>(
-      query: (data?: Data) => Promise<Result>
-    ) => async (data?: Data) => {
-      const result = await query(data);
+        query: (data?: Data) => Promise<Result>
+      ) =>
+      async (data?: Data) => {
+        const result = await query(data);
 
-      if (result.errors) {
-        Logger.error(`GraphQl errors`, result);
-        throw new Error(`Api Client error`);
-      }
-      return result;
-    },
+        if (result.errors) {
+          ClientLogger.error(`GraphQl errors`, result);
+          throw new Error(`Api Client error`);
+        }
+        return result;
+      },
     []
   );
 

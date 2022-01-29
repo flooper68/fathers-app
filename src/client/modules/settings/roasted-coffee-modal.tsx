@@ -1,8 +1,8 @@
 import { Modal, Button, Input, Form, Select } from 'antd';
 import React, { useCallback } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { useApiClient } from '../../api/api-client';
+import { ClientLogger } from '../../client-logger';
 import { useWholeList } from '../common/use-whole-list';
 
 interface FormData {
@@ -17,11 +17,8 @@ export const RoastedCoffeeFormModal = (props: {
   onClose: () => void;
 }) => {
   const [form] = Form.useForm<FormData>();
-  const {
-    createRoastedCoffee,
-    getGreenCoffees,
-    updateRoastedCoffee,
-  } = useApiClient();
+  const { createRoastedCoffee, getGreenCoffees, updateRoastedCoffee } =
+    useApiClient();
 
   const fetchRoastedCoffeeList = useCallback(async () => {
     const result = await getGreenCoffees();
@@ -50,7 +47,7 @@ export const RoastedCoffeeFormModal = (props: {
         onClose();
       }
     } catch (e) {
-      Logger.error(e);
+      ClientLogger.error(e);
     }
   }, [updateRoastedCoffee, onClose, createRoastedCoffee, props, form]);
 

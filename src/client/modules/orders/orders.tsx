@@ -10,11 +10,11 @@ import {
 import moment from 'moment';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Logger } from '../../../shared/logger';
 import { RoastingStatus } from '../../../shared/types/roasting';
 import { useApiClient } from '../../api/api-client';
 import { OrderListItem } from '../../api/queries/get-orders-query';
 import { RoastingListItem } from '../../api/queries/get-roastings-query';
+import { ClientLogger } from '../../client-logger';
 
 const PAGE_SIZE = 20;
 
@@ -26,9 +26,8 @@ export const Orders = () => {
     []
   );
   const [modalOpened, setModalOpened] = useState(false);
-  const [chooseRoastingModalOpened, setChooseRoastingModalOpened] = useState(
-    false
-  );
+  const [chooseRoastingModalOpened, setChooseRoastingModalOpened] =
+    useState(false);
   const [modalContext, setModalContext] = useState<OrderListItem | null>(null);
   const [selectedRoasting, setSelectedRoasting] = useState<string | null>(null);
 
@@ -53,7 +52,7 @@ export const Orders = () => {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading list`, e);
+      ClientLogger.error(`Error loading list`, e);
     }
   }, [apiClient]);
 
@@ -62,7 +61,7 @@ export const Orders = () => {
       if (currentPage + 1 > pageCount) {
         return;
       }
-      Logger.debug(`Fetching more rows, page ${currentPage + 1}`);
+      ClientLogger.debug(`Fetching more rows, page ${currentPage + 1}`);
       const result = await apiClient.getOrders(currentPage + 1);
       setRows((state) => [...state, ...result.data.orders.rows]);
       setPageCount(result.data.orders.pageCount);
@@ -71,7 +70,7 @@ export const Orders = () => {
       notification.error({
         message: 'Chyba při načítání dat',
       });
-      Logger.error(`Error loading list`, e);
+      ClientLogger.error(`Error loading list`, e);
     }
   }, [apiClient, currentPage, pageCount]);
 
@@ -86,7 +85,7 @@ export const Orders = () => {
       notification.error({
         message: 'Chyba při ukládání dat',
       });
-      Logger.error(`Error adding order to roasting`, e);
+      ClientLogger.error(`Error adding order to roasting`, e);
     }
     setChooseRoastingModalOpened(false);
     setModalContext(null);
@@ -110,7 +109,7 @@ export const Orders = () => {
         notification.error({
           message: 'Chyba při načítání dat',
         });
-        Logger.error(`Error fetching roastings.`);
+        ClientLogger.error(`Error fetching roastings.`);
       }
     })();
   }, [apiClient]);
