@@ -23,13 +23,13 @@ jobs:
           name: Run Jest tests
           command: yarn test
   integration-tests:
-    working_directory: ~/app
     docker:
+      - image: cimg/node:14.18.2
       - image: mongo:4.4.4-bionic
         environment:
           MONGO_INITDB_ROOT_USERNAME: father
           MONGO_INITDB_ROOT_PASSWORD: father
-      - image: cimg/node:14.18.2
+    parallelism: 1
     steps:
       - checkout
       - restore_cache:
@@ -79,6 +79,5 @@ jobs:
 workflows:
   final_build:
     jobs:
-      - unit-tests
       - integration-tests
-      - build
+      
