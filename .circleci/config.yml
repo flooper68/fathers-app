@@ -45,8 +45,6 @@ jobs:
       - save_cache:
           paths:
             - node_modules
-            - ~/.npm
-            - ~/.cache
           key: v1-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Copy shared env vars from app
@@ -69,8 +67,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v2-unit-dependencies-{{ checksum "yarn.lock" }}
-            - v2-unit-dependencies-
+            - v1-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Write build tag
           command: sh ./scripts/generate-version.sh
@@ -80,9 +77,7 @@ jobs:
       - save_cache:
           paths:
             - node_modules
-            - ~/.npm
-            - ~/.cache
-          key: v2-unit-dependencies-{{ checksum "yarn.lock" }}
+          key: v1-unit-dependencies-{{ checksum "yarn.lock" }}
 workflows:
   final_build:
     jobs:
