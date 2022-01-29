@@ -25,6 +25,10 @@ jobs:
   integration-tests:
     docker:
       - image: cimg/node:14.18.2
+        environment:
+          WOOCOMMERCE_URL: $WOOCOMMERCE_URL
+          WOOCOMMERCE_KEY: $WOOCOMMERCE_KEY
+          WOOCOMMERCE_SECRET: $WOOCOMMERCE_SECRET
       - image: mongo:4.4.4-bionic
         environment:
           MONGO_INITDB_ROOT_USERNAME: father
@@ -45,6 +49,10 @@ jobs:
             - ~/.npm
             - ~/.cache
           key: v3-unit-dependencies-{{ checksum "yarn.lock" }}
+      - run:
+          name: Copy shared env vars from app
+          command: |
+            cat .env-integration > .env
       - run:
           name: Start
           command: yarn start:dev
