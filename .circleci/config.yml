@@ -22,8 +22,37 @@ jobs:
       - run:
           name: Run Jest tests
           command: yarn test
-      - store_test_results:
-          path: ~/app/test-results
+  integration-tests:
+    docker:
+      - image: mongo:4.4.4-bionic
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: father
+          MONGO_INITDB_ROOT_PASSWORD: father
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v4-unit-dependencies-{{ checksum "yarn.lock" }}
+            - v4-unit-dependencies-
+      - run:
+          name: Yarn install
+          command: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v3-unit-dependencies-{{ checksum "yarn.lock" }}
+      - run:
+          name: Start
+          command: yarn start:dev
+          background: true
+      - run:
+          name: Wait-on http://localhost:3000
+          command: npx wait-on http://localhost:3000
+      - run:
+          name: Run Integration tests
+          command: yarn test:integration
   build:
     machine:
       image: ubuntu-1604:201903-01
@@ -49,4 +78,5 @@ workflows:
   final_build:
     jobs:
       - unit-tests
+      - integration-tests
       - build
