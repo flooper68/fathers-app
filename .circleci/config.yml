@@ -21,7 +21,7 @@ jobs:
           key: v3-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Run Jest tests
-          command: yarn test:ci
+          command: yarn test
       - store_test_results:
           path: ~/app/test-results
   build:
