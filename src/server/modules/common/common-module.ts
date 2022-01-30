@@ -1,5 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
 
+import { AggregateRootStore } from './aggreagte-root-store';
 import { ApplicationConfigService } from './application-config';
 import { ApplicationConfigToken } from './di-tokens';
 
@@ -15,8 +16,12 @@ export class CommonModule {
 
     return {
       module: CommonModule,
-      providers: [ApplicationConfigService, contextConfigProvider],
-      exports: [ApplicationConfigService],
+      providers: [
+        ApplicationConfigService,
+        contextConfigProvider,
+        AggregateRootStore,
+      ],
+      exports: [ApplicationConfigService, AggregateRootStore],
     };
   };
 }

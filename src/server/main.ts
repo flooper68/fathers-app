@@ -36,8 +36,6 @@ const bootstrap = async () => {
 
   Logger.info('Db connected');
 
-  Logger.info(`App listening at port ${applicationConfig.serverPort}`);
-
   const messageBroker = buildMessageBroker();
 
   const woocommerceClient = await buildWooCommerceClient(applicationConfig);
@@ -46,9 +44,8 @@ const bootstrap = async () => {
   const roastingRepository = buildRoastingRepository();
   const roastedCoffeeRepository = buildRoastedCoffeeRepository();
   const roastingProductRepository = buildRoastingProductRepository();
-  const warehouseRoastedCoffeeRepository = buildWarehouseRoastedCoffeeRepository(
-    { messageBroker }
-  );
+  const warehouseRoastedCoffeeRepository =
+    buildWarehouseRoastedCoffeeRepository({ messageBroker });
 
   const roastingModule = buildRoastingModule({
     roastedCoffeeRepository,
