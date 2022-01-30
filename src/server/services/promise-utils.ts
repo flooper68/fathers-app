@@ -1,10 +1,10 @@
 export const runPromisesInSequence = async <Item>(
   array: Item[],
-  callback: (item: Item) => Promise<void>
+  callback: (item: Item, index: number) => Promise<void>
 ) => {
-  return array.reduce(async (memo, item) => {
+  return array.reduce(async (memo, item, index) => {
     await memo;
-    return callback(item);
+    return callback(item, index);
   }, Promise.resolve());
 };
 

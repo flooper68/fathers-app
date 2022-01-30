@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 import { AggregateRootStore } from '../common/aggreagte-root-store';
 import { assertExistence } from '../common/assert-existence';
+import { EventOutbox } from '../common/event-outbox';
 import { HelloWorldFactory } from './hello-world-factory';
-import { HelloWorldRepository } from './hello-world-repository';
+import { HelloWorldRepository, TestModel } from './hello-world-repository';
 import {
   HelloWorldState,
   HelloWorldDomainEvent,
@@ -21,8 +22,11 @@ export class HelloWorldContext {
     private readonly store: AggregateRootStore<
       HelloWorldState,
       HelloWorldDomainEvent
-    >
-  ) {}
+    >,
+    private readonly outbox: EventOutbox<HelloWorldState>
+  ) {
+    outbox.registerOutbox(TestModel);
+  }
 
   async handleWork(work: (context: Context) => Promise<void>) {
     return this.store.withTranscation(async (transaction) => {
@@ -47,6 +51,7 @@ export class HelloWorldContext {
       await work(context);
 
       await context.repository.save(assertExistence(hydratedRoot));
+      this.outbox.checkout();
     });
   }
 }

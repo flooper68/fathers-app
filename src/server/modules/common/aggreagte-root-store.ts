@@ -26,8 +26,8 @@ export interface AggregateRootDocument<S extends WithUuid> extends Document {
   uuid: string;
   state: S;
 
-  events: unknown[];
-  outbox: unknown[];
+  events: E[];
+  outbox: E[];
 }
 
 export class ConcurrencyError extends Error {
@@ -261,9 +261,6 @@ export class AggregateRootStore<S extends WithUuid, E> {
       } catch (e) {
         if (e?.message === 'ConcurrencyError') {
           tries++;
-          Logger.debug(
-            `Optimistic Transaction ${transactionUuid} failed optimistic update, repeating`
-          );
         } else {
           Logger.debug(`Optimistic Transaction ${transactionUuid} failed`);
           delete this._runningTransactions[transactionUuid];
