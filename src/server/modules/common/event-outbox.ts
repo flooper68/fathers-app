@@ -9,17 +9,26 @@ import {
   ConcurrencyError,
 } from './aggreagte-root-store';
 import { runPromisesInSequence } from './../../services/promise-utils';
+import { MessageBroker } from './message-broker';
+import { withAwaitedEllapsedTime } from './with-ellapsed-time';
 
 @Injectable()
 export class EventOutbox<S extends { uuid: string }> {
   private _queue = new PromiseQueue(1, Infinity);
   private _models: Model<AggregateRootDocument<S>>[] = [];
+  private _listening = false;
+
+  constructor(private readonly broker: MessageBroker) {
+    setInterval(() => {
+      this.checkout();
+    }, 2000);
+  }
 
   registerOutbox(model: Model<AggregateRootDocument<S>>) {
     this._models.push(model);
   }
 
-  private async handleCheckout() {
+  private checkOutbox = withAwaitedEllapsedTime(async () => {
     Logger.debug(`Checking out outbox`);
     try {
       await Promise.all(
@@ -28,11 +37,14 @@ export class EventOutbox<S extends { uuid: string }> {
             .find({ 'outbox.0': { $exists: true } })
             .sort({ position: 1 });
 
-          Logger.debug(`Found ${docs.length} docs with events in outbox`);
-
           for (const doc of docs) {
             await runPromisesInSequence(doc.outbox, async (event, index) => {
-              Logger.debug(`Publishing event position ${event.position}`);
+              await Promise.all(
+                doc.streams.map((stream) =>
+                  this.broker.publishEvent(stream, event)
+                )
+              );
+
               const result = await model.updateOne(
                 { _id: doc._id, dataVersion: doc.dataVersion + index },
                 {
@@ -57,14 +69,21 @@ export class EventOutbox<S extends { uuid: string }> {
         this.enqueueCheckout();
       }
     }
-  }
+  }, 'checkOutbox');
 
-  private enqueueCheckout = _.debounce(
-    () => this._queue.add(() => this.handleCheckout()),
+  private enqueueCheckout = _.throttle(
+    () => this._queue.add(() => this.checkOutbox()),
     100
   );
 
   checkout() {
+    if (!this._listening) {
+      return;
+    }
     this.enqueueCheckout();
+  }
+
+  listen() {
+    this._listening = true;
   }
 }

@@ -1,4 +1,3 @@
-import { Consumer } from './modules/common/consumer';
 import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 
@@ -7,6 +6,7 @@ import { getApplicationContext } from './app-context';
 import { withAwaitedEllapsedTime } from './modules/common/with-ellapsed-time';
 import { runPromisesInSequence } from './services/promise-utils';
 import { HelloWorldDomainEvent } from './modules/hello-world/hello-world-root';
+import { Consumer } from './modules/common/consumer';
 
 const bootstrap = async () => {
   const context = await getApplicationContext();
@@ -20,18 +20,18 @@ const bootstrap = async () => {
     }
   );
 
-  // try {
-  //   await mongoose.connection.collection('hello-worlds').drop();
-  //   // eslint-disable-next-line no-empty
-  // } catch (e) {}
-  // try {
-  //   await mongoose.connection.collection('event-streams').drop();
-  //   // eslint-disable-next-line no-empty
-  // } catch (e) {}
-  // try {
-  //   await mongoose.connection.collection('consumers').drop();
-  //   // eslint-disable-next-line no-empty
-  // } catch (e) {}
+  try {
+    await mongoose.connection.collection('hello-worlds').drop();
+    // eslint-disable-next-line no-empty
+  } catch (e) {}
+  try {
+    await mongoose.connection.collection('event-streams').drop();
+    // eslint-disable-next-line no-empty
+  } catch (e) {}
+  try {
+    await mongoose.connection.collection('consumers').drop();
+    // eslint-disable-next-line no-empty
+  } catch (e) {}
 
   Logger.info('Db connected');
 
@@ -99,17 +99,80 @@ const bootstrap = async () => {
       Promise.all(
         Array(1)
           .fill(1)
-          .map(() => handleFlow(30))
+          .map(() => handleFlowInSequence(10))
       ),
     'Total time'
   );
 
-  await work();
-  setInterval(() => {
-    work();
-  }, 1000);
+  // await work();
 
   Logger.info(`Finished writing`);
+
+  context.eventOutbox.listen();
+  const reducer = (
+    state: Record<string, number>,
+    event: HelloWorldDomainEvent
+  ) => {
+    switch (event.type) {
+      case 'HelloWorldCountChanged': {
+        return {
+          ...state,
+          [event.payload.uuid]: (state[event.payload.uuid] || 0) + 1,
+        };
+      }
+      case 'HelloWorldCreated': {
+        return {
+          ...state,
+          [event.payload.uuid]: 0,
+        };
+      }
+      default:
+        return state;
+    }
+  };
+  const consumer1 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
+    context.messageBroker
+  );
+
+  consumer1.listen({
+    name: `consumer-${v4()}`,
+    stream: 'stream-1',
+    initialState: {},
+    reducer,
+  });
+
+  const consumer2 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
+    context.messageBroker
+  );
+
+  consumer2.listen({
+    name: `consumer-${v4()}`,
+    stream: 'stream-2',
+    initialState: {},
+    reducer,
+  });
+
+  const consumer3 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
+    context.messageBroker
+  );
+
+  consumer3.listen({
+    name: `consumer-${v4()}`,
+    stream: 'stream-3',
+    initialState: {},
+    reducer,
+  });
+
+  const consumer4 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
+    context.messageBroker
+  );
+
+  consumer4.listen({
+    name: `consumer-${v4()}`,
+    stream: 'stream-4',
+    initialState: {},
+    reducer,
+  });
 
   // process.exit();
 };

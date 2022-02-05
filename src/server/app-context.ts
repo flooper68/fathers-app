@@ -7,10 +7,14 @@ import { ApplicationConfig, getApplicationConfig } from './application-config';
 import { ApplicationConfigService } from './modules/common/application-config';
 import { CqrsModule } from './modules/cqrs/cqrs.module';
 import { HelloWorldFeature } from './modules/hello-world/hello-world-feature';
+import { MessageBroker } from './modules/common/message-broker';
+import { EventOutbox } from './modules/common/event-outbox';
 
 export interface AppContext {
   applicationConfig: ApplicationConfigService<ApplicationConfig>;
   helloWorldFeature: HelloWorldFeature;
+  messageBroker: MessageBroker;
+  eventOutbox: EventOutbox<any>;
 }
 
 const contextModule = CqrsModule.configure({
@@ -41,6 +45,8 @@ export const getApplicationContext = async (): Promise<AppContext> => {
   const applicationConfig: ApplicationConfigService<ApplicationConfig> =
     await appContext.resolve(ApplicationConfigService);
   const helloWorldFeature = await appContext.resolve(HelloWorldFeature);
+  const messageBroker = await appContext.resolve(MessageBroker);
+  const eventOutbox = await appContext.resolve(EventOutbox);
 
-  return { applicationConfig, helloWorldFeature };
+  return { applicationConfig, helloWorldFeature, messageBroker, eventOutbox };
 };

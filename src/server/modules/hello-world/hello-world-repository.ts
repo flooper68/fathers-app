@@ -24,6 +24,7 @@ const schema = new Schema({
   endEventPosition: Number,
   position: Number,
   dataVersion: Number,
+  streams: [String],
 
   uuid: String,
   state: Object,
@@ -45,12 +46,24 @@ export class HelloWorldRepository {
 
   async get(uuid: string) {
     const document = await this.store
-      .useModel(TestModel, 1, 10)
+      .useModel(TestModel, 1, 1000, [
+        `stream-1`,
+        `stream-2`,
+        `stream-3`,
+        `stream-4`,
+      ])
       .get(uuid, this.transaction);
     return this.factory.hydrate(document.state, document.endEventPosition);
   }
 
   save(root: HelloWorldAggregateRoot) {
-    return this.store.useModel(TestModel, 1, 10).save(root, this.transaction);
+    return this.store
+      .useModel(TestModel, 1, 1000, [
+        `stream-1`,
+        `stream-2`,
+        `stream-3`,
+        `stream-4`,
+      ])
+      .save(root, this.transaction);
   }
 }

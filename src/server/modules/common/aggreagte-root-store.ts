@@ -26,8 +26,9 @@ export interface AggregateRootDocument<S extends WithUuid> extends Document {
   uuid: string;
   state: S;
 
-  events: E[];
-  outbox: E[];
+  events: unknown[];
+  outbox: { correlationUuid: string; position: number }[];
+  streams: string[];
 }
 
 export class ConcurrencyError extends Error {
@@ -54,9 +55,13 @@ export class AggregateRootStore<S extends WithUuid, E> {
   > = {};
 
   private createNewBucket =
-    (model: Model<AggregateRootDocument<S>>, schemaVersion: number) =>
+    (
+      model: Model<AggregateRootDocument<S>>,
+      schemaVersion: number,
+      streamNames: string[]
+    ) =>
     async (state: S) => {
-      Logger.info(`Creating first bucket for new entity`);
+      Logger.debug(`Creating first bucket for new entity`);
       const result = await model.updateOne(
         { _id: `${state.uuid}_${0}` },
         {
@@ -70,6 +75,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
             uuid: state.uuid,
             events: [],
             outbox: [],
+            streams: streamNames,
           },
         },
         { upsert: true }
@@ -90,7 +96,8 @@ export class AggregateRootStore<S extends WithUuid, E> {
     (
       model: Model<AggregateRootDocument<S>>,
       schemaVersion: number,
-      eventCountLimit: number
+      eventCountLimit: number,
+      streamNames: string[]
     ) =>
     async (
       document: AggregateRootDocument<S>
@@ -118,6 +125,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
               dataVersion: 0,
               events: [],
               outbox: [],
+              streams: streamNames,
             },
           },
           { upsert: true }
@@ -145,7 +153,8 @@ export class AggregateRootStore<S extends WithUuid, E> {
     (
       model: Model<AggregateRootDocument<S>>,
       schemaVersion: number,
-      eventCountLimit: number
+      eventCountLimit: number,
+      streamNames: string[]
     ) =>
     async (
       uuid: string,
@@ -164,7 +173,8 @@ export class AggregateRootStore<S extends WithUuid, E> {
       document = await this.handleBucketSize(
         model,
         schemaVersion,
-        eventCountLimit
+        eventCountLimit,
+        streamNames
       )(document);
 
       if (transaction) {
@@ -182,7 +192,11 @@ export class AggregateRootStore<S extends WithUuid, E> {
     };
 
   save =
-    (model: Model<AggregateRootDocument<S>>, schemaVersion: number) =>
+    (
+      model: Model<AggregateRootDocument<S>>,
+      schemaVersion: number,
+      streamNames: string[]
+    ) =>
     async (
       aggregateRoot: AggregateRoot<S, E>,
       transaction: OptimisticTransaction
@@ -197,7 +211,11 @@ export class AggregateRootStore<S extends WithUuid, E> {
 
       if (!this._runningTransactions[transaction.uuid].document) {
         Logger.debug(`There is no fetched entity, assuming entity creation`);
-        document = await this.createNewBucket(model, schemaVersion)(state);
+        document = await this.createNewBucket(
+          model,
+          schemaVersion,
+          streamNames
+        )(state);
       } else {
         document = assertExistence(
           this._runningTransactions[transaction.uuid].document
@@ -218,6 +236,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
           $push: {
             events: aggregateRoot.getEvents().map((event, index) => ({
               ...event,
+              // this position here is wrong,
               position: document.endEventPosition + index,
               correlationUuid: v4(),
             })),
@@ -234,11 +253,17 @@ export class AggregateRootStore<S extends WithUuid, E> {
   useModel = (
     model: Model<AggregateRootDocument<S>>,
     schemaVersion: number,
-    eventCountLimit: number
+    eventCountLimit: number,
+    streamNames: string[]
   ) => {
     return {
-      get: this.getLatestBucket(model, schemaVersion, eventCountLimit),
-      save: this.save(model, schemaVersion),
+      get: this.getLatestBucket(
+        model,
+        schemaVersion,
+        eventCountLimit,
+        streamNames
+      ),
+      save: this.save(model, schemaVersion, streamNames),
     };
   };
 

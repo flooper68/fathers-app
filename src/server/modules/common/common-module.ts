@@ -4,6 +4,7 @@ import { AggregateRootStore } from './aggreagte-root-store';
 import { ApplicationConfigService } from './application-config';
 import { ApplicationConfigToken } from './di-tokens';
 import { EventOutbox } from './event-outbox';
+import { MessageBroker } from './message-broker';
 
 @Module({})
 export class CommonModule {
@@ -22,8 +23,14 @@ export class CommonModule {
         contextConfigProvider,
         AggregateRootStore,
         EventOutbox,
+        MessageBroker,
       ],
-      exports: [ApplicationConfigService, AggregateRootStore, EventOutbox],
+      exports: [
+        ApplicationConfigService,
+        AggregateRootStore,
+        EventOutbox,
+        MessageBroker,
+      ],
     };
   };
 }
