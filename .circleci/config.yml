@@ -3,7 +3,7 @@ jobs:
   unit-tests:
     working_directory: ~/app
     docker:
-      - image: cimg/node:14.18.2
+      - image: cimg/node:16.13.2
     steps:
       - checkout
       - restore_cache:
@@ -22,7 +22,6 @@ jobs:
   integration-tests:
     docker:
       - image: mcr.microsoft.com/playwright:focal
-      - image: cimg/node:14.18.2
         environment:
           WOOCOMMERCE_URL: $WOOCOMMERCE_URL
           WOOCOMMERCE_KEY: $WOOCOMMERCE_KEY
