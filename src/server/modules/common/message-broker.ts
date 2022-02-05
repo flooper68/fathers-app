@@ -164,10 +164,12 @@ export class MessageBroker {
   };
 
   publishEvent = withAwaitedEllapsedTime(
-    async (uuid: string, event: { uuid: string }): Promise<void> => {
+    async (
+      uuid: string,
+      event: { uuid: string; type: string }
+    ): Promise<void> => {
       let success = false;
 
-      console.log(event);
       while (!success) {
         try {
           await this.handlePublish(uuid, event);
@@ -179,7 +181,7 @@ export class MessageBroker {
             throw e;
           }
         } finally {
-          Logger.info(`Event ${event.uuid} published to ${uuid}`);
+          Logger.info(`Event ${event.uuid} ${event.type} published to ${uuid}`);
         }
       }
     },

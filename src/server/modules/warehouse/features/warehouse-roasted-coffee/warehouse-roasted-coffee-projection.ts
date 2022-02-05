@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import moment from 'moment';
 
 import { Consumer } from '../../../common/consumer';
 import { MessageBroker } from '../../../common/message-broker';
@@ -17,7 +18,7 @@ const initialState: ReducedState = {
 };
 
 const config = {
-  name: 'test-consumer',
+  name: 'warehouse-roasted-coffee-projection-new',
   stream: `application-stream`,
   initialState,
   reducer: (
@@ -29,24 +30,31 @@ const config = {
         return {
           ...state,
           quantityOnHand: state.quantityOnHand + event.payload.amount,
+          lastUpdated: event.payload.timestamp,
+          lastUpdateReason: `RoastingLeftoversAdded`,
         };
       }
       case 'WarehouseRoastedCoffeeRoot/RoastingLeftoversAdjusted': {
         return {
           ...state,
           quantityOnHand: event.payload.newAmount,
+          lastUpdated: event.payload.timestamp,
+          lastUpdateReason: `RoastingLeftoversAdjusted`,
         };
       }
       case 'WarehouseRoastedCoffeeRoot/RoastingLeftoversUsed': {
         return {
           ...state,
           quantityOnHand: state.quantityOnHand - event.payload.amount,
+          lastUpdated: event.payload.timestamp,
+          lastUpdateReason: `RoastingLeftoversUsed`,
         };
       }
       case 'WarehouseRoastedCoffeeRoot/WarehouseRoastedCoffeeCreated': {
         return {
           roastedCoffeeId: event.payload.uuid,
           quantityOnHand: 0,
+          lastUpdated: moment().format(),
         };
       }
       default: {

@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 
-import { getApplicationContext } from '../../server/app-context';
+import { getApplicationConfig } from '../../server/application-config';
 
 export const cleanUpData = async () => {
-  const context = await getApplicationContext();
-  const applicationConfig = context.applicationConfig.getConfig();
+  const applicationConfig = getApplicationConfig();
 
   await mongoose.connect(
     `mongodb://${applicationConfig.dbUsername}:${applicationConfig.dbPassword}@${applicationConfig.dbHost}:${applicationConfig.dbPort}/${applicationConfig.dbName}?authSource=${applicationConfig.authenticationDbName}`,
@@ -21,7 +20,9 @@ export const cleanUpData = async () => {
     // eslint-disable-next-line no-empty
   } catch (e) {}
   try {
-    await mongoose.connection.collection('test-consumers').drop();
+    await mongoose.connection
+      .collection('warehouse-roasted-coffee-projection-news')
+      .drop();
     // eslint-disable-next-line no-empty
   } catch (e) {}
   try {

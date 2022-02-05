@@ -22,7 +22,7 @@ export interface AggregateRootDocument<S extends WithUuid, E> extends Document {
   state: S;
 
   events: E[];
-  outbox: { uuid: string; position: number }[];
+  outbox: { uuid: string; position: number; type: string }[];
   streams: string[];
 }
 
