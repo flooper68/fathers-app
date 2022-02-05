@@ -1,14 +1,27 @@
 import { test, expect } from '@playwright/test';
+import moment from 'moment';
+import { v4 } from 'uuid';
+
+import {
+  addWarehouseRoastedCoffees,
+  getWarehouseRoastedCoffees,
+} from './integration/warehouse-client';
+import { cleanUpData } from './support/clean-data';
 
 test('basic test', async ({ request }) => {
-  const newIssue = await request.post(`http://localhost:3000/api/graphql`, {
-    data: {
-      operationName: 'getOrders',
-      query:
-        'query getWarehouse {\n  warehouseRoastedCoffees {\n    roastedCoffeeId\n    roastedCoffeeName\n    lastUpdated\n    quantityOnHand\n    lastUpdateReason\n    history {\n      type\n      timestamp\n      amount\n    }\n  }\n}\n\nmutation adjustLeftovers{\n  adjustRoastedCoffeeLeftovers(roastedCoffeeId: "test", newAmount:20) {\n    success\n  }\n}\n\nmutation useLeftovers{\n  useRoastedCoffeeLeftovers(roastedCoffeeId: "test", amount:20) {\n    success\n  }\n}\n\nquery getSync {\n  sync {\n   \tlastOrderSyncTime\n    orderSyncInProgress\n    orderSyncDataVersion\n    orderSyncErrorMessage\n    orderSyncError\n    productSyncInProgress\n    productSyncDataVersion\n    productSyncError\n    productSyncErrorMessage\n  }\n}\n\nquery getProducts {\n  products {\n    id\n    roastedCoffeeId\n    roastedCoffeeName\n    name\n    dateModified\n    description\n    shortDescription\n    images {\n      id\n      name\n      src\n    }\n    categories {\n      id\n      name\n    }\n    variations {\n      id\n      weight\n    }\n  }\n}\n\nquery getOrders {\n  orders {\n    page\n    rows {\n      id\n      number\n      status\n      dateCreated\n      dateModified\n      roastingId\n      roastingDate\n      lineItems {\n        id\n        name\n        productName\n        productId\n      \tvariationId\n        quantity\n       \n      }\n    }\n    pageCount\n  }\n}\n\nquery getGreen {\n  greenCoffees {\n    id\n    name\n    batchWeight\n    roastingLossFactor\n  }\n}\n\nquery getRoasting {\n  roastings {\n    id\n    status\n    roastingDate\n    orders {\n      id\n      number\n      status\n      dateCreated\n      dateModified\n      lineItems {\n        id\n        name\n      }\n    }\n    greenCoffee {\n      id\n      weight\n      batchWeight\n      roastingLossFactor\n    }\n    roastedCoffee {\n      id\n      name \n      numberOfBatches \n      finishedBatches \n      weight \n      realYield\n      expectedBatchYield\n    }\n    finishedBatches {\n      roastedCoffeeId\n      amount\n    }\n    realYield {\n      roastedCoffeeId\n      weight\n    }\n  }\n}\n\nmutation createGreen {\n  createGreenCoffee(name: "test", batchWeight: 0.2, roastingLossFactor:1) {\n    success\n  }\n}\n\n\nmutation updateGreen {\n  updateGreenCoffee(id:"5eefe2ab-49eb-403b-a2d8-2b7f3635fb5b", name: "test", batchWeight: 0.2, roastingLossFactor:1) {\n    success\n  }\n}\n\nquery getRoasted {\n  roastedCoffees {\n    id\n    name\n    greenCoffeeId\n    greenCoffeeName\n    \n  }\n}\n\nmutation createRoasted {\n  createRoastedCoffee(name:"Coffee 2 roasted", greenCoffeeId: "5eefe2ab-49eb-403b-a2d8-2b7f3635fb5b") {\n    success\n  }\n}\n\nmutation updateRoasted {\n  updateRoastedCoffee(id: "caf5fdc3-f6d9-41fc-b2ba-8c5aad7dab9d", name: "Coffee 2 roasted - updated", greenCoffeeId:"asdgasdg") {\n    success\n  }\n}\n\nmutation assignProduct {\n  assignProductToRoastedCoffee(id: 15212, roastedCoffeeId: "110f8d26-8393-4f9f-9cd4-59074b4adf96") {\n    success\n  }\n}\n\nmutation addRoastingLeftovers {\n  addRoastingLeftovers {\n    success\n  } \n}',
-      variables: null,
-    },
+  await cleanUpData();
+
+  await addWarehouseRoastedCoffees(request, {
+    roastingId: 'roasting',
+    roastedCoffeeId: 'coffee',
+    amount: 10,
+    timestamp: moment().format(),
+    correlationUuid: v4(),
   });
-  console.log(await newIssue.json());
-  expect(newIssue.ok()).toBeTruthy();
+
+  await new Promise((res) => setTimeout(res, 200));
+  const result = await getWarehouseRoastedCoffees(request);
+
+  expect(result.length).toBe(1);
+  expect(result[0].quantityOnHand).toBe(10);
 });

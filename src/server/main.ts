@@ -90,6 +90,7 @@ const bootstrap = async () => {
   withStaticRouter({ app });
 
   app.listen(applicationConfig.serverPort);
+  context.application.listen(3003);
 
   Logger.info(`Listening on port ${applicationConfig.serverPort}`);
 };

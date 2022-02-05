@@ -48,7 +48,7 @@ export class EventOutbox<S extends { uuid: string } = any, E = unknown> {
                 {
                   $pull: {
                     outbox: {
-                      correlationUuid: event.correlationUuid,
+                      uuid: event.uuid,
                     },
                   },
                   dataVersion: doc.dataVersion + index + 1,

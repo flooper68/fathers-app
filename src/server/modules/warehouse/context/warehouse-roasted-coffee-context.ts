@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 import { Injectable } from '@nestjs/common';
 import { Subject } from 'rxjs';
 
@@ -62,6 +63,7 @@ export class WarehouseContext {
         assertExistence(hydratedRoot?.getState()),
         events.map((event) => ({
           ...event,
+          uuid: v4(),
           correlationUuid,
           rootUuid: hydratedRoot?.getState().uuid,
         }))

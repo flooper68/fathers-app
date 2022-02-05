@@ -32,7 +32,6 @@ interface Config<S, E> {
 
 export class Consumer<S, E> {
   private _queue = new PromiseQueue(1, Infinity);
-  private _nextPosition = 0;
   private _model: Model<ConsumerDocument<S>>;
 
   private _config: Config<S, E> | null = null;
@@ -54,15 +53,18 @@ export class Consumer<S, E> {
     this.catchUp();
   }
 
-  private catchUp = async () => {
-    if (!this._config) {
-      throw new Error();
-    }
-
+  private getNextPosition = async () => {
     const doc = await this._model.findOne().sort({ nextPosition: 1 });
 
     if (doc) {
-      this._nextPosition = doc.nextPosition;
+      return doc.nextPosition;
+    }
+    return 0;
+  };
+
+  private catchUp = async () => {
+    if (!this._config) {
+      throw new Error();
     }
 
     let nextEvent = true;
@@ -82,9 +84,11 @@ export class Consumer<S, E> {
       throw new Error();
     }
 
+    const nextPosition = await this.getNextPosition();
+
     const event = await this.broker.getMessage(
       this._config.stream,
-      this._nextPosition
+      nextPosition
     );
 
     if (!event) {
@@ -118,14 +122,11 @@ export class Consumer<S, E> {
       { _id: event.rootUuid },
       {
         state: state as never,
-        nextPosition: this._nextPosition + 1,
+        nextPosition: nextPosition + 1,
         dateVersion: (doc?.dataVersion || 0) + 1,
       }
     );
-    this._nextPosition++;
-    Logger.debug(
-      `Event ${event.correlationUuid} consumed in ${this._config.name}`
-    );
+    Logger.debug(`Event ${event.uuid} consumed in ${this._config.name}`);
     return true;
   }
 

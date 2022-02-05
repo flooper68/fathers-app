@@ -114,7 +114,7 @@ export class MessageBroker {
 
   private handlePublish = async (
     uuid: string,
-    event: { correlationUuid: string }
+    event: { uuid: string }
   ): Promise<void> => {
     let document: EventBucketDocument | null = await eventStreamModel
       .findOne({
@@ -131,12 +131,12 @@ export class MessageBroker {
         uuid: uuid,
         events: {
           $elemMatch: {
-            correlationUuid: event.correlationUuid,
+            uuid: event.uuid,
           },
         },
       })
     ) {
-      Logger.debug(`Event ${event.correlationUuid} already exists, skipping`);
+      Logger.debug(`Event ${event.uuid} already exists, skipping`);
       return;
     }
 
@@ -164,9 +164,10 @@ export class MessageBroker {
   };
 
   publishEvent = withAwaitedEllapsedTime(
-    async (uuid: string, event: { correlationUuid: string }): Promise<void> => {
+    async (uuid: string, event: { uuid: string }): Promise<void> => {
       let success = false;
 
+      console.log(event);
       while (!success) {
         try {
           await this.handlePublish(uuid, event);
@@ -174,11 +175,11 @@ export class MessageBroker {
           this._subject.next(uuid);
         } catch (e) {
           if (e instanceof Error && e?.message !== 'ConcurrencyError') {
-            Logger.error(`Event ${event.correlationUuid} publish failed`, e);
+            Logger.error(`Event ${event.uuid} publish failed`, e);
             throw e;
           }
         } finally {
-          Logger.info(`Event ${event.correlationUuid} published to ${uuid}`);
+          Logger.info(`Event ${event.uuid} published to ${uuid}`);
         }
       }
     },

@@ -38,7 +38,7 @@ export class WarehouseModule {
         WarehouseRoastedCoffeeProjection,
         WarehouseRoastedCoffeeFeature,
       ],
-      exports: [],
+      exports: [WarehouseRoastedCoffeeFeature],
     };
   };
 }

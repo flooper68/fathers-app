@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { INestApplication, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { GraphQLModule } from '@nestjs/graphql';
 
 import { HelloWorldModule } from './modules/hello-world/hello-world.module';
 import { Logger } from '../shared/logger';
@@ -11,8 +12,10 @@ import { MessageBroker } from './modules/common/message-broker';
 import { EventOutbox } from './modules/common/event-outbox';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { WarehouseRoastedCoffeeFeature } from './modules/warehouse/features/warehouse-roasted-coffee-features';
+import { WarehouseResolver } from './api/warehouse-resolver';
 
 export interface AppContext {
+  application: INestApplication;
   applicationConfig: ApplicationConfigService<ApplicationConfig>;
   helloWorldFeature: HelloWorldFeature;
   messageBroker: MessageBroker;
@@ -32,13 +35,17 @@ const contextModule = CqrsModule.configure({
   imports: [
     HelloWorldModule.configure(contextModule),
     WarehouseModule.configure(contextModule),
+    GraphQLModule.forRoot({
+      autoSchemaFile: true,
+      path: '/api/graphql',
+    }),
   ],
-  providers: [],
+  providers: [WarehouseResolver],
 })
 export class AppModule {}
 
 export const getApplicationContext = async (): Promise<AppContext> => {
-  const appContext = await NestFactory.createApplicationContext(AppModule, {
+  const appContext = await NestFactory.create(AppModule, {
     logger: {
       log: Logger.info,
       error: Logger.error,
@@ -58,6 +65,7 @@ export const getApplicationContext = async (): Promise<AppContext> => {
   );
 
   return {
+    application: appContext,
     applicationConfig,
     helloWorldFeature,
     messageBroker,
