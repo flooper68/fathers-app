@@ -13,15 +13,15 @@ import { MessageBroker } from './message-broker';
 import { withAwaitedEllapsedTime } from './with-ellapsed-time';
 
 @Injectable()
-export class EventOutbox<S extends { uuid: string }> {
+export class EventOutbox<S extends { uuid: string }, E> {
   private _queue = new PromiseQueue(1, Infinity);
-  private _models: Model<AggregateRootDocument<S>>[] = [];
+  private _models: Model<AggregateRootDocument<S, E>>[] = [];
   // TODO add to CQRS module and worker config
   private _listening = true;
 
   constructor(private readonly broker: MessageBroker) {}
 
-  registerOutbox(model: Model<AggregateRootDocument<S>>) {
+  registerOutbox(model: Model<AggregateRootDocument<S, E>>) {
     this._models.push(model);
   }
 

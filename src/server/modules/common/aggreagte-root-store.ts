@@ -10,7 +10,7 @@ interface WithUuid {
   uuid: string;
 }
 
-export interface AggregateRootDocument<S extends WithUuid> extends Document {
+export interface AggregateRootDocument<S extends WithUuid, E> extends Document {
   schemaVersion: number;
 
   startEventPosition: number;
@@ -21,7 +21,7 @@ export interface AggregateRootDocument<S extends WithUuid> extends Document {
   uuid: string;
   state: S;
 
-  events: unknown[];
+  events: E[];
   outbox: { correlationUuid: string; position: number }[];
   streams: string[];
 }
@@ -37,21 +37,21 @@ export interface OptimisticTransaction {
   uuid: string;
 }
 
-interface RunningOptimisticTransaction<S extends WithUuid> {
+interface RunningOptimisticTransaction<S extends WithUuid, E> {
   uuid: string;
-  document?: AggregateRootDocument<S>;
+  document?: AggregateRootDocument<S, E>;
 }
 
 @Injectable()
 export class AggregateRootStore<S extends WithUuid, E> {
   private _runningTransactions: Record<
     string,
-    RunningOptimisticTransaction<S>
+    RunningOptimisticTransaction<S, E>
   > = {};
 
   private createNewBucket =
     (
-      model: Model<AggregateRootDocument<S>>,
+      model: Model<AggregateRootDocument<S, E>>,
       schemaVersion: number,
       streamNames: string[]
     ) =>
@@ -89,14 +89,14 @@ export class AggregateRootStore<S extends WithUuid, E> {
 
   private handleBucketSize =
     (
-      model: Model<AggregateRootDocument<S>>,
+      model: Model<AggregateRootDocument<S, E>>,
       schemaVersion: number,
       eventCountLimit: number,
       streamNames: string[]
     ) =>
     async (
-      document: AggregateRootDocument<S>
-    ): Promise<AggregateRootDocument<S>> => {
+      document: AggregateRootDocument<S, E>
+    ): Promise<AggregateRootDocument<S, E>> => {
       if (
         document.endEventPosition - document.startEventPosition >=
         eventCountLimit
@@ -146,7 +146,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
 
   getLatestBucket =
     (
-      model: Model<AggregateRootDocument<S>>,
+      model: Model<AggregateRootDocument<S, E>>,
       schemaVersion: number,
       eventCountLimit: number,
       streamNames: string[]
@@ -154,8 +154,8 @@ export class AggregateRootStore<S extends WithUuid, E> {
     async (
       uuid: string,
       transaction?: OptimisticTransaction
-    ): Promise<AggregateRootDocument<S>> => {
-      let document: AggregateRootDocument<S> | null = await model
+    ): Promise<AggregateRootDocument<S, E>> => {
+      let document: AggregateRootDocument<S, E> | null = await model
         .findOne({
           uuid: uuid,
         })
@@ -188,7 +188,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
 
   save =
     (
-      model: Model<AggregateRootDocument<S>>,
+      model: Model<AggregateRootDocument<S, E>>,
       schemaVersion: number,
       streamNames: string[]
     ) =>
@@ -201,7 +201,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
         throw new ApplicationError(`No transaction started`);
       }
 
-      let document: AggregateRootDocument<S>;
+      let document: AggregateRootDocument<S, E>;
 
       if (!this._runningTransactions[transaction.uuid].document) {
         Logger.debug(`There is no fetched entity, assuming entity creation`);
@@ -244,7 +244,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
     };
 
   useModel = (
-    model: Model<AggregateRootDocument<S>>,
+    model: Model<AggregateRootDocument<S, E>>,
     schemaVersion: number,
     eventCountLimit: number,
     streamNames: string[]

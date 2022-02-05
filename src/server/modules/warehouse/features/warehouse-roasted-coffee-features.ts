@@ -8,7 +8,10 @@ import { CommandBus } from '../../cqrs/buses/command-bus';
 import { QueryBus } from '../../cqrs/buses/query-bus';
 import { CommandProps } from '../../cqrs/decorators/command-handler.decorator';
 import { QueryProps } from '../../cqrs/decorators/query-handler.decorator';
-import { GetRoastedCoffeeProjectionQuery } from './warehouse-roasted-coffee/get-roasted-coffee-projection';
+import { WarehouseRoastedCoffeeDomainEvent } from '../domain/warehouse-roasted-coffee-events';
+import { GetWarehouseRoastedCoffeeQuery } from './warehouse-roasted-coffee/get-warehouse-roasted-coffee';
+import { GetWarehouseRoastedCoffeeByIdsQuery } from './warehouse-roasted-coffee/get-warehouse-roasted-coffee-by-ids';
+import { GetWarehouseRoastedCoffeesQuery } from './warehouse-roasted-coffee/get-warehouse-roasted-coffees';
 
 export interface AddRoastingLeftoversProps extends CommandProps {
   roastedCoffeeId: string;
@@ -35,6 +38,45 @@ export interface GetRoastedCoffeeHistoryProps extends QueryProps {
 
 export interface GetRoastedCoffeeProjectionProps extends QueryProps {
   roastedCoffeeId: string;
+}
+
+export interface GetRoastedCoffeeHistoryResult {
+  events: WarehouseRoastedCoffeeDomainEvent[];
+}
+
+export interface GetWarehouseRoastedCoffeeProps extends QueryProps {
+  id: string;
+}
+
+export interface GetWarehouseRoastedCoffeeResult {
+  roastedCoffeeId: string;
+  quantityOnHand: number;
+  lastUpdated?: string;
+  lastUpdateReason?: string;
+}
+
+export type GetWarehouseRoastedCoffeesProps = QueryProps;
+
+export interface GetWarehouseRoastedCoffeesResult {
+  coffess: {
+    roastedCoffeeId: string;
+    quantityOnHand: number;
+    lastUpdated?: string;
+    lastUpdateReason?: string;
+  }[];
+}
+
+export interface GetWarehouseRoastedCoffeeByIdsProps extends QueryProps {
+  ids: number[];
+}
+
+export interface GetWarehouseRoastedCoffeeByIdsResult {
+  coffees: {
+    roastedCoffeeId: string;
+    quantityOnHand: number;
+    lastUpdated?: string;
+    lastUpdateReason?: string;
+  }[];
 }
 
 @Injectable()
@@ -64,17 +106,29 @@ export class WarehouseRoastedCoffeeFeature {
     );
   };
 
-  // TODO add Result type
   getRoastedCoffeeHistory = (
     props: GetRoastedCoffeeHistoryProps
-  ): Promise<any> => {
+  ): Promise<GetRoastedCoffeeHistoryResult> => {
     return this.queryBus.execute(new GetRoastedCoffeeQuery(props));
   };
 
-  // TODO add Result type
-  getRoastedCoffeeProjectionHistory = (
-    props: GetRoastedCoffeeProjectionProps
-  ): Promise<any> => {
-    return this.queryBus.execute(new GetRoastedCoffeeProjectionQuery(props));
+  getWarehouseRoastedCoffee = (
+    props: GetWarehouseRoastedCoffeeProps
+  ): Promise<GetWarehouseRoastedCoffeeResult | undefined> => {
+    return this.queryBus.execute(new GetWarehouseRoastedCoffeeQuery(props));
+  };
+
+  getWarehouseRoastedCoffees = (
+    props: GetWarehouseRoastedCoffeesProps
+  ): Promise<GetWarehouseRoastedCoffeesResult> => {
+    return this.queryBus.execute(new GetWarehouseRoastedCoffeesQuery(props));
+  };
+
+  getWarehouseRoastedCoffeeByIds = (
+    props: GetWarehouseRoastedCoffeeByIdsProps
+  ): Promise<GetWarehouseRoastedCoffeeByIdsResult> => {
+    return this.queryBus.execute(
+      new GetWarehouseRoastedCoffeeByIdsQuery(props)
+    );
   };
 }

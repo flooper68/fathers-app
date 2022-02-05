@@ -4,6 +4,14 @@ import PromiseQueue from 'promise-queue';
 import { Logger } from '../../../shared/logger';
 import { MessageBroker } from './message-broker';
 
+export interface ConsumerDocument<S> extends Document {
+  _id: string;
+  schemaVersion: number;
+  dataVersion: number;
+  nextPosition: number;
+  state: S;
+}
+
 const _schema = new Schema({
   _id: String,
   schemaVersion: {
@@ -25,8 +33,7 @@ interface Config<S, E> {
 export class Consumer<S, E> {
   private _queue = new PromiseQueue(1, Infinity);
   private _nextPosition = 0;
-  // TODO add document
-  private _model: Model<any>;
+  private _model: Model<ConsumerDocument<S>>;
 
   private _config: Config<S, E> | null = null;
 
@@ -40,7 +47,7 @@ export class Consumer<S, E> {
     }
   ) {
     this._config = config;
-    this._model = model(config.name, _schema);
+    this._model = model<ConsumerDocument<S>>(config.name, _schema);
   }
 
   listen() {
@@ -94,7 +101,7 @@ export class Consumer<S, E> {
           $setOnInsert: {
             nextPosition: 1,
             dataVersion: 1,
-            state: this._config.initialState,
+            state: this._config.initialState as never,
           },
         },
         { upsert: true }
@@ -110,7 +117,7 @@ export class Consumer<S, E> {
     await this._model.updateOne(
       { _id: event.rootUuid },
       {
-        state,
+        state: state as never,
         nextPosition: this._nextPosition + 1,
         dateVersion: (doc?.dataVersion || 0) + 1,
       }

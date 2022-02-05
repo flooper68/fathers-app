@@ -4,7 +4,10 @@ import {
   IQueryHandler,
 } from '../../../cqrs/decorators/query-handler.decorator';
 import { warehouseRoastedCoffeeModel } from '../../context/warehouse-roasted-coffee-model';
-import { GetRoastedCoffeeHistoryProps } from '../warehouse-roasted-coffee-features';
+import {
+  GetRoastedCoffeeHistoryProps,
+  GetRoastedCoffeeHistoryResult,
+} from '../warehouse-roasted-coffee-features';
 
 export class GetRoastedCoffeeQuery
   implements IQuery<GetRoastedCoffeeHistoryProps, 'GetRoastedCoffee'>
@@ -14,23 +17,24 @@ export class GetRoastedCoffeeQuery
 }
 
 @QueryHandler({ query: GetRoastedCoffeeQuery })
-// TODO add Result type
 export class GetRoastedCoffeeQueryHandler
-  implements IQueryHandler<GetRoastedCoffeeQuery, any>
+  implements
+    IQueryHandler<GetRoastedCoffeeQuery, GetRoastedCoffeeHistoryResult>
 {
-  execute = async (query: GetRoastedCoffeeQuery): Promise<any> => {
+  execute = async (
+    query: GetRoastedCoffeeQuery
+  ): Promise<GetRoastedCoffeeHistoryResult> => {
     const doc = await warehouseRoastedCoffeeModel.findOne({
       uuid: query.payload.roastedCoffeeId,
     });
 
     if (!doc) {
-      return undefined;
+      return { events: [] };
     }
 
     const object = doc.toObject();
 
     return {
-      state: object.state,
       events: object.events,
     };
   };

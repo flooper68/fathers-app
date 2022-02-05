@@ -5,26 +5,52 @@ import { MessageBroker } from '../../../common/message-broker';
 import { WarehouseRoastedCoffeeDomainEvent } from '../../domain/warehouse-roasted-coffee-events';
 
 interface ReducedState {
-  amount: number;
+  roastedCoffeeId: string;
+  quantityOnHand: number;
+  lastUpdated?: string;
+  lastUpdateReason?: string;
 }
+
+const initialState: ReducedState = {
+  roastedCoffeeId: '',
+  quantityOnHand: 0,
+};
 
 const config = {
   name: 'test-consumer',
   stream: `application-stream`,
-  initialState: {
-    amount: 0,
-  },
-  // TODO add types, use reduxjs toolkit
-  reducer: (state, event) => {
+  initialState,
+  reducer: (
+    state: ReducedState,
+    event: WarehouseRoastedCoffeeDomainEvent
+  ): ReducedState => {
     switch (event.type) {
       case 'WarehouseRoastedCoffeeRoot/RoastingLeftoversAdded': {
         return {
           ...state,
-          amount: state.amount + event.payload.amount,
+          quantityOnHand: state.quantityOnHand + event.payload.amount,
+        };
+      }
+      case 'WarehouseRoastedCoffeeRoot/RoastingLeftoversAdjusted': {
+        return {
+          ...state,
+          quantityOnHand: event.payload.newAmount,
+        };
+      }
+      case 'WarehouseRoastedCoffeeRoot/RoastingLeftoversUsed': {
+        return {
+          ...state,
+          quantityOnHand: state.quantityOnHand - event.payload.amount,
+        };
+      }
+      case 'WarehouseRoastedCoffeeRoot/WarehouseRoastedCoffeeCreated': {
+        return {
+          roastedCoffeeId: event.payload.uuid,
+          quantityOnHand: 0,
         };
       }
       default: {
-        return state;
+        throw Error(`Unknown event`);
       }
     }
   },
@@ -39,6 +65,7 @@ export class WarehouseRoastedCoffeeProjection {
   constructor(private readonly messageBroker: MessageBroker) {
     this._consumer = new Consumer(this.messageBroker, config);
 
+    // TODO change listening mechanism
     setTimeout(() => {
       this._consumer.listen();
     }, 3000);

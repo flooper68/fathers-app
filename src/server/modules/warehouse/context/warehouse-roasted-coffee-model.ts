@@ -1,10 +1,13 @@
 import { Schema, model } from 'mongoose';
 
 import { AggregateRootDocument } from '../../common/aggreagte-root-store';
+import { WarehouseRoastedCoffeeDomainEvent } from '../domain/warehouse-roasted-coffee-events';
 import { WarehouseRoastedCoffeeState } from '../domain/warehouse-roasted-coffee-types';
 
-export type WarehouseRoastedCoffeeDocument =
-  AggregateRootDocument<WarehouseRoastedCoffeeState>;
+export type WarehouseRoastedCoffeeDocument = AggregateRootDocument<
+  WarehouseRoastedCoffeeState,
+  WarehouseRoastedCoffeeDomainEvent
+>;
 
 const schema = new Schema({
   _id: String,

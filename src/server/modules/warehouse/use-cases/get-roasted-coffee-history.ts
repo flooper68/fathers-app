@@ -1,6 +1,5 @@
 import { GetRoastedCoffeeHistoryProps } from './../warehouse-contracts';
 import { Logger } from '../../../../shared/logger';
-import { WarehouseRoastedCoffeeEntity } from '../entities/warehouse-roasted-coffee-entity';
 import { WarehouseContext } from '../warehouse-contracts';
 
 export const getRoastedCoffeeHistoryUseCase = async (
