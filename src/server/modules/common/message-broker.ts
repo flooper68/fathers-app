@@ -173,7 +173,7 @@ export class MessageBroker {
           success = true;
           this._subject.next(uuid);
         } catch (e) {
-          if (e?.message !== 'ConcurrencyError') {
+          if (e instanceof Error && e?.message !== 'ConcurrencyError') {
             Logger.error(`Event ${event.correlationUuid} publish failed`, e);
             throw e;
           }

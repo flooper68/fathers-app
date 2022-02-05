@@ -277,7 +277,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
         success = true;
         delete this._runningTransactions[transactionUuid];
       } catch (e) {
-        if (e?.message === 'ConcurrencyError') {
+        if (e instanceof Error && e?.message === 'ConcurrencyError') {
           tries++;
         } else {
           Logger.debug(`Optimistic Transaction ${transactionUuid} failed`);

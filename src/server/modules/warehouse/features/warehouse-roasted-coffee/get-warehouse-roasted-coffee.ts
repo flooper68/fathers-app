@@ -40,6 +40,6 @@ export class GetWarehouseRoastedCoffeeQueryHandler
 
     const object = doc.toObject();
 
-    return object;
+    return object.state;
   };
 }

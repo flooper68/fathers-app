@@ -16,7 +16,7 @@ export interface AppContext {
   applicationConfig: ApplicationConfigService<ApplicationConfig>;
   helloWorldFeature: HelloWorldFeature;
   messageBroker: MessageBroker;
-  eventOutbox: EventOutbox<any>;
+  eventOutbox: EventOutbox;
   warehouseRoastedCoffeeFeature: WarehouseRoastedCoffeeFeature;
 }
 

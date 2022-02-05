@@ -13,15 +13,16 @@ import { MessageBroker } from './message-broker';
 import { withAwaitedEllapsedTime } from './with-ellapsed-time';
 
 @Injectable()
-export class EventOutbox<S extends { uuid: string }, E> {
+export class EventOutbox<S extends { uuid: string } = any, E = unknown> {
   private _queue = new PromiseQueue(1, Infinity);
-  private _models: Model<AggregateRootDocument<S, E>>[] = [];
+  private _models: Model<AggregateRootDocument<never, never>>[] = [];
   // TODO add to CQRS module and worker config
   private _listening = true;
 
   constructor(private readonly broker: MessageBroker) {}
 
-  registerOutbox(model: Model<AggregateRootDocument<S, E>>) {
+  //TODO fix any
+  registerOutbox(model: Model<any>) {
     this._models.push(model);
   }
 
@@ -62,7 +63,7 @@ export class EventOutbox<S extends { uuid: string }, E> {
         })
       );
     } catch (e) {
-      if (e.message === 'ConcurrencyError') {
+      if (e instanceof Error && e.message === 'ConcurrencyError') {
         this.enqueueCheckout();
       }
     }

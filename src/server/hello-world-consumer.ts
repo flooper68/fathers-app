@@ -108,7 +108,6 @@ const bootstrap = async () => {
 
   Logger.info(`Finished writing`);
 
-  context.eventOutbox.listen();
   const reducer = (
     state: Record<string, number>,
     event: HelloWorldDomainEvent
@@ -131,48 +130,52 @@ const bootstrap = async () => {
     }
   };
   const consumer1 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
-    context.messageBroker
+    context.messageBroker,
+    {
+      name: `consumer-${v4()}`,
+      stream: 'stream-1',
+      initialState: {},
+      reducer,
+    }
   );
 
-  consumer1.listen({
-    name: `consumer-${v4()}`,
-    stream: 'stream-1',
-    initialState: {},
-    reducer,
-  });
+  consumer1.listen();
 
   const consumer2 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
-    context.messageBroker
+    context.messageBroker,
+    {
+      name: `consumer-${v4()}`,
+      stream: 'stream-2',
+      initialState: {},
+      reducer,
+    }
   );
 
-  consumer2.listen({
-    name: `consumer-${v4()}`,
-    stream: 'stream-2',
-    initialState: {},
-    reducer,
-  });
+  consumer2.listen();
 
   const consumer3 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
-    context.messageBroker
+    context.messageBroker,
+    {
+      name: `consumer-${v4()}`,
+      stream: 'stream-3',
+      initialState: {},
+      reducer,
+    }
   );
 
-  consumer3.listen({
-    name: `consumer-${v4()}`,
-    stream: 'stream-3',
-    initialState: {},
-    reducer,
-  });
+  consumer3.listen();
 
   const consumer4 = new Consumer<Record<string, number>, HelloWorldDomainEvent>(
-    context.messageBroker
+    context.messageBroker,
+    {
+      name: `consumer-${v4()}`,
+      stream: 'stream-4',
+      initialState: {},
+      reducer,
+    }
   );
 
-  consumer4.listen({
-    name: `consumer-${v4()}`,
-    stream: 'stream-4',
-    initialState: {},
-    reducer,
-  });
+  consumer4.listen();
 
   // process.exit();
 };

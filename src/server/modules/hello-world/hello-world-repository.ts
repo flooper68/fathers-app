@@ -12,7 +12,10 @@ import {
   HelloWorldState,
 } from './hello-world-root';
 
-export type HelloWorldDocument = AggregateRootDocument<HelloWorldState>;
+export type HelloWorldDocument = AggregateRootDocument<
+  HelloWorldState,
+  HelloWorldDomainEvent
+>;
 
 const schema = new Schema({
   _id: String,
@@ -57,13 +60,16 @@ export class HelloWorldRepository {
   }
 
   save(root: HelloWorldAggregateRoot) {
-    return this.store
-      .useModel(TestModel, 1, 1000, [
-        `stream-1`,
-        `stream-2`,
-        `stream-3`,
-        `stream-4`,
-      ])
-      .save(root, this.transaction);
+    return (
+      this.store
+        .useModel(TestModel, 1, 1000, [
+          `stream-1`,
+          `stream-2`,
+          `stream-3`,
+          `stream-4`,
+        ])
+        //TODO fix events
+        .save(root.getState(), [], this.transaction)
+    );
   }
 }
