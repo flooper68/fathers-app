@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=14.16.x <15"
+    "node": ">=16.x <17"
   },
   "scripts": {
     "start": "yarn migrate up && node build-server/src/server/main.js",
