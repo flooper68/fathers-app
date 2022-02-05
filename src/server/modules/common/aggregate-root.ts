@@ -32,12 +32,12 @@ export abstract class AggregateRoot<
     this._subject.next(event as E);
   };
 
-  protected useDomainAction = <P>(
-    action: (props: P, context: typeof this._actionContext) => void
-  ) => (props: P): void => {
-    action(props, this._actionContext);
-    this._checkInvariants(this.getState());
-  };
+  protected useDomainAction =
+    <P>(action: (props: P, context: typeof this._actionContext) => void) =>
+    (props: P): void => {
+      action(props, this._actionContext);
+      this._checkInvariants(this.getState());
+    };
 
   constructor(
     props: S,

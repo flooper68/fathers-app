@@ -6,7 +6,12 @@ export class QueryError extends Error {}
 
 export class UniqueEntityConstraintError extends Error {}
 
-export class EntityNotFoundError extends Error {}
+export class EntityNotFoundError extends Error {
+  constructor() {
+    super(`Entity not found`);
+    Object.setPrototypeOf(this, EntityNotFoundError.prototype);
+  }
+}
 
 export class ValueObjectNotFoundError extends Error {}
 

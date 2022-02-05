@@ -9,12 +9,15 @@ import { CqrsModule } from './modules/cqrs/cqrs.module';
 import { HelloWorldFeature } from './modules/hello-world/hello-world-feature';
 import { MessageBroker } from './modules/common/message-broker';
 import { EventOutbox } from './modules/common/event-outbox';
+import { WarehouseModule } from './modules/warehouse/warehouse.module';
+import { WarehouseRoastedCoffeeFeature } from './modules/warehouse/features/warehouse-roasted-coffee-features';
 
 export interface AppContext {
   applicationConfig: ApplicationConfigService<ApplicationConfig>;
   helloWorldFeature: HelloWorldFeature;
   messageBroker: MessageBroker;
   eventOutbox: EventOutbox<any>;
+  warehouseRoastedCoffeeFeature: WarehouseRoastedCoffeeFeature;
 }
 
 const contextModule = CqrsModule.configure({
@@ -26,7 +29,10 @@ const contextModule = CqrsModule.configure({
 });
 
 @Module({
-  imports: [HelloWorldModule.configure(contextModule)],
+  imports: [
+    HelloWorldModule.configure(contextModule),
+    WarehouseModule.configure(contextModule),
+  ],
   providers: [],
 })
 export class AppModule {}
@@ -47,6 +53,15 @@ export const getApplicationContext = async (): Promise<AppContext> => {
   const helloWorldFeature = await appContext.resolve(HelloWorldFeature);
   const messageBroker = await appContext.resolve(MessageBroker);
   const eventOutbox = await appContext.resolve(EventOutbox);
+  const warehouseRoastedCoffeeFeature = await appContext.resolve(
+    WarehouseRoastedCoffeeFeature
+  );
 
-  return { applicationConfig, helloWorldFeature, messageBroker, eventOutbox };
+  return {
+    applicationConfig,
+    helloWorldFeature,
+    messageBroker,
+    eventOutbox,
+    warehouseRoastedCoffeeFeature,
+  };
 };

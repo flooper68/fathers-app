@@ -16,13 +16,10 @@ import { withAwaitedEllapsedTime } from './with-ellapsed-time';
 export class EventOutbox<S extends { uuid: string }> {
   private _queue = new PromiseQueue(1, Infinity);
   private _models: Model<AggregateRootDocument<S>>[] = [];
-  private _listening = false;
+  // TODO add to CQRS module and worker config
+  private _listening = true;
 
-  constructor(private readonly broker: MessageBroker) {
-    setInterval(() => {
-      this.checkout();
-    }, 2000);
-  }
+  constructor(private readonly broker: MessageBroker) {}
 
   registerOutbox(model: Model<AggregateRootDocument<S>>) {
     this._models.push(model);
@@ -81,9 +78,5 @@ export class EventOutbox<S extends { uuid: string }> {
       return;
     }
     this.enqueueCheckout();
-  }
-
-  listen() {
-    this._listening = true;
   }
 }

@@ -4,15 +4,10 @@ import { v4 } from 'uuid';
 
 import { Logger } from '../../../shared/logger';
 import { assertExistence } from './assert-existence';
-import { ApplicationError } from './errors';
+import { ApplicationError, EntityNotFoundError } from './errors';
 
 interface WithUuid {
   uuid: string;
-}
-
-interface AggregateRoot<S extends WithUuid, E> {
-  getState(): S;
-  getEvents(): E[];
 }
 
 export interface AggregateRootDocument<S extends WithUuid> extends Document {
@@ -167,7 +162,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
         .sort({ position: -1 });
 
       if (!document) {
-        throw new Error(`Entity not found`);
+        throw new EntityNotFoundError();
       }
 
       document = await this.handleBucketSize(
@@ -198,11 +193,10 @@ export class AggregateRootStore<S extends WithUuid, E> {
       streamNames: string[]
     ) =>
     async (
-      aggregateRoot: AggregateRoot<S, E>,
+      state: S,
+      events: E[],
       transaction: OptimisticTransaction
     ): Promise<void> => {
-      const state = aggregateRoot.getState();
-
       if (!this._runningTransactions[transaction.uuid]) {
         throw new ApplicationError(`No transaction started`);
       }
@@ -229,18 +223,17 @@ export class AggregateRootStore<S extends WithUuid, E> {
           startEventPosition: document.startEventPosition,
         },
         {
-          endEventPosition:
-            document.endEventPosition + aggregateRoot.getEvents().length,
+          endEventPosition: document.endEventPosition + events.length,
           state: state as never,
           dataVersion: document.dataVersion + 1,
           $push: {
-            events: aggregateRoot.getEvents().map((event, index) => ({
+            events: events.map((event, index) => ({
               ...event,
               // this position here is wrong,
               position: document.endEventPosition + index,
               correlationUuid: v4(),
             })),
-            outbox: aggregateRoot.getEvents(),
+            outbox: events,
           },
         }
       );
@@ -301,3 +294,7 @@ export class AggregateRootStore<S extends WithUuid, E> {
     );
   }
 }
+
+export type AggregateRootStoreModel<S extends WithUuid, E> = ReturnType<
+  AggregateRootStore<S, E>['useModel']
+>;

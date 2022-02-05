@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose';
+import { Model, model, Schema } from 'mongoose';
 import PromiseQueue from 'promise-queue';
 
 import { Logger } from '../../../shared/logger';
@@ -10,8 +10,8 @@ const _schema = new Schema({
     type: Number,
     required: true,
   },
-  nextPosition: Number,
   dataVersion: Number,
+  nextPosition: Number,
   state: Object,
 });
 
@@ -24,28 +24,38 @@ interface Config<S, E> {
 
 export class Consumer<S, E> {
   private _queue = new PromiseQueue(1, Infinity);
+  private _nextPosition = 0;
+  // TODO add document
+  private _model: Model<any>;
 
   private _config: Config<S, E> | null = null;
 
-  constructor(private readonly broker: MessageBroker) {
-    setInterval(() => {
-      this.catchUp();
-    }, 1000);
+  constructor(
+    private readonly broker: MessageBroker,
+    config: {
+      name: string;
+      stream: string;
+      initialState: S;
+      reducer: (state: S, event: E) => S;
+    }
+  ) {
+    this._config = config;
+    this._model = model(config.name, _schema);
   }
 
-  listen(config: {
-    name: string;
-    stream: string;
-    initialState: S;
-    reducer: (state: S, event: E) => S;
-  }) {
-    this._config = config;
+  listen() {
     this.catchUp();
   }
 
   private catchUp = async () => {
     if (!this._config) {
       throw new Error();
+    }
+
+    const doc = await this._model.findOne().sort({ nextPosition: 1 });
+
+    if (doc) {
+      this._nextPosition = doc.nextPosition;
     }
 
     let nextEvent = true;
@@ -64,12 +74,22 @@ export class Consumer<S, E> {
     if (!this._config) {
       throw new Error();
     }
-    const consumerModel = model(`consumer`, _schema);
-    let doc = await consumerModel.findOne({ _id: this._config.name });
+
+    const event = await this.broker.getMessage(
+      this._config.stream,
+      this._nextPosition
+    );
+
+    if (!event) {
+      Logger.debug(`No next event, finished`);
+      return false;
+    }
+
+    let doc = await this._model.findOne({ _id: event.rootUuid });
 
     if (!doc) {
-      await consumerModel.updateOne(
-        { _id: this._config.name },
+      await this._model.updateOne(
+        { _id: event.rootUuid },
         {
           $setOnInsert: {
             nextPosition: 1,
@@ -79,19 +99,7 @@ export class Consumer<S, E> {
         },
         { upsert: true }
       );
-      doc = await consumerModel.findOne({ _id: this._config.name });
-    }
-
-    const nextPosition = doc?.nextPosition || 0;
-
-    const event = await this.broker.getMessage(
-      this._config.stream,
-      nextPosition
-    );
-
-    if (!event) {
-      Logger.debug(`No next event, finished`, doc.state);
-      return false;
+      doc = await this._model.findOne({ _id: event.rootUuid });
     }
 
     const state = this._config.reducer(
@@ -99,23 +107,26 @@ export class Consumer<S, E> {
       event
     );
 
-    await consumerModel.updateOne(
-      { _id: this._config.name },
+    await this._model.updateOne(
+      { _id: event.rootUuid },
       {
         state,
-        nextPosition: nextPosition + 1,
+        nextPosition: this._nextPosition + 1,
         dateVersion: (doc?.dataVersion || 0) + 1,
       }
     );
-    // Logger.info(
-    //   `Event ${event.correlationUuid} consumed, new state, event ${nextPosition}`,
-    //   state
-    // );
-    Logger.info(`- ${nextPosition}`);
+    this._nextPosition++;
+    Logger.debug(
+      `Event ${event.correlationUuid} consumed in ${this._config.name}`
+    );
     return true;
   }
 
   private handleEvent = () => {
     return this._queue.add(() => this.handleNextEvent());
   };
+
+  get model() {
+    return this._model;
+  }
 }
