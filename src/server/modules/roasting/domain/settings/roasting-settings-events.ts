@@ -95,7 +95,7 @@ const reducers = {
 };
 
 const { actions, reducer } = createSlice({
-  name: 'WarehouseRoastedCoffeeRoot',
+  name: 'RoastingSettingsRoot',
   initialState: {
     uuid: '',
     quantityOnHand: 0,
