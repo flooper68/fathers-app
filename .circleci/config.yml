@@ -8,14 +8,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-unit-dependencies-{{ checksum "yarn.lock" }}
+            - v2-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Yarn install
           command: yarn install
       - save_cache:
           paths:
             - node_modules
-          key: v1-unit-dependencies-{{ checksum "yarn.lock" }}
+          key: v2-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Run Jest tests
           command: yarn test
@@ -35,14 +35,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-unit-dependencies-{{ checksum "yarn.lock" }}
+            - v2-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Yarn install
           command: yarn install
       - save_cache:
           paths:
             - node_modules
-          key: v1-unit-dependencies-{{ checksum "yarn.lock" }}
+          key: v2-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Copy shared env vars from app
           command: |
@@ -64,7 +64,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-unit-dependencies-{{ checksum "yarn.lock" }}
+            - v2-unit-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Write build tag
           command: sh ./scripts/generate-version.sh
@@ -74,7 +74,7 @@ jobs:
       - save_cache:
           paths:
             - node_modules
-          key: v1-unit-dependencies-{{ checksum "yarn.lock" }}
+          key: v2-unit-dependencies-{{ checksum "yarn.lock" }}
 workflows:
   final_build:
     jobs:
