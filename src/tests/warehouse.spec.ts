@@ -16,13 +16,15 @@ const waitForProjectionTimeout = () =>
 test('should add roasted coffee to warehouse', async ({ request }) => {
   await cleanUpData();
 
-  await addWarehouseRoastedCoffees(request, {
+  const success = await addWarehouseRoastedCoffees(request, {
     roastingId: 'roasting',
     roastedCoffeeId: 'coffee',
     amount: 10,
     timestamp: moment().format(),
     correlationUuid: v4(),
   });
+
+  expect(success).toBe(200);
 
   await waitForProjectionTimeout();
   const result = await getWarehouseRoastedCoffees(request);
@@ -41,12 +43,14 @@ test('should use roasted coffee from warehouse', async ({ request }) => {
     timestamp: moment().format(),
     correlationUuid: v4(),
   });
-  await useWarehouseRoastedCoffees(request, {
+  const success = await useWarehouseRoastedCoffees(request, {
     roastedCoffeeId: 'coffee',
     amount: 3,
     timestamp: moment().format(),
     correlationUuid: v4(),
   });
+
+  expect(success).toBe(200);
 
   await waitForProjectionTimeout();
 
@@ -70,12 +74,14 @@ test('should adjust roasted coffee in warehouse', async ({ request }) => {
     timestamp: moment().format(),
     correlationUuid: v4(),
   });
-  await adjustWarehouseRoastedCoffees(request, {
+  const success = await adjustWarehouseRoastedCoffees(request, {
     roastedCoffeeId: 'coffee',
     newAmount: 15,
     timestamp: moment().format(),
     correlationUuid: v4(),
   });
+
+  expect(success).toBe(200);
 
   await waitForProjectionTimeout();
 

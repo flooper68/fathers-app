@@ -30,6 +30,8 @@ export const getWarehouseRoastedCoffees = async (
 
   const data = await result.json();
 
+  console.log(data);
+
   return data.data.warehouseRoastedCoffees;
 };
 
