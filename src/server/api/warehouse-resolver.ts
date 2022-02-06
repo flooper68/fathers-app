@@ -85,11 +85,9 @@ export class WarehouseResolver {
 
   @Query(() => [WarehouseRoastedCoffee])
   async warehouseRoastedCoffees() {
-    const test = await this.warehouseRoastedCoffee.getWarehouseRoastedCoffees({
+    return this.warehouseRoastedCoffee.getWarehouseRoastedCoffees({
       correlationUuid: v4(),
     });
-
-    return test.coffees;
   }
 
   @Mutation(() => CommandResult)

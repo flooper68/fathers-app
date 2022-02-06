@@ -30,6 +30,6 @@ export class GetWarehouseRoastedCoffeesQueryHandler
   execute = async (): Promise<GetWarehouseRoastedCoffeesResult> => {
     const coffess = await this.projection.model.find();
 
-    return { coffees: coffess.map((doc) => doc.toObject().state) };
+    return coffess.map((doc) => doc.toObject().state);
   };
 }

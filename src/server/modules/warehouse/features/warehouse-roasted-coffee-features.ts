@@ -57,14 +57,12 @@ export interface GetWarehouseRoastedCoffeeResult {
 
 export type GetWarehouseRoastedCoffeesProps = QueryProps;
 
-export interface GetWarehouseRoastedCoffeesResult {
-  coffees: {
-    roastedCoffeeId: string;
-    quantityOnHand: number;
-    lastUpdated?: string;
-    lastUpdateReason?: string;
-  }[];
-}
+export type GetWarehouseRoastedCoffeesResult = {
+  roastedCoffeeId: string;
+  quantityOnHand: number;
+  lastUpdated?: string;
+  lastUpdateReason?: string;
+}[];
 
 export interface GetWarehouseRoastedCoffeeByIdsProps extends QueryProps {
   ids: number[];

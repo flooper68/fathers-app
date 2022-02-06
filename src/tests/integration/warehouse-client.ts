@@ -1,15 +1,17 @@
+import { APIRequestContext } from '@playwright/test';
+
 import {
   AddRoastingLeftoversProps,
   AdjustRoastedCoffeeLeftoversProps,
+  GetWarehouseRoastedCoffeesResult,
   UseRoastedCoffeeLeftoversProps,
 } from './../../server/modules/warehouse/features/warehouse-roasted-coffee-features';
-import { APIRequestContext } from '@playwright/test';
 
 const url = `http://localhost:3003/api/graphql`;
 
 export const getWarehouseRoastedCoffees = async (
   request: APIRequestContext
-) => {
+): Promise<GetWarehouseRoastedCoffeesResult> => {
   const result = await request.post(url, {
     data: {
       query: `
@@ -54,9 +56,7 @@ export const addWarehouseRoastedCoffees = async (
     },
   });
 
-  const data = await result.json();
-
-  return data.data;
+  return result.status();
 };
 
 export const useWarehouseRoastedCoffees = async (
@@ -81,9 +81,7 @@ export const useWarehouseRoastedCoffees = async (
     },
   });
 
-  const data = await result.json();
-
-  return data.data;
+  return result.status();
 };
 
 export const adjustWarehouseRoastedCoffees = async (
@@ -108,7 +106,5 @@ export const adjustWarehouseRoastedCoffees = async (
     },
   });
 
-  const data = await result.json();
-
-  return data.data;
+  return result.status();
 };
