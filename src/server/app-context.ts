@@ -13,6 +13,8 @@ import { EventOutbox } from './modules/common/event-outbox';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { WarehouseRoastedCoffeeFeature } from './modules/warehouse/features/warehouse-roasted-coffee-features';
 import { WarehouseResolver } from './api/warehouse-resolver';
+import { RoastingModule } from './modules/roasting/roasting.module';
+import { RoastingSettingsResolver } from './api/roasting-settings-resolver';
 
 export interface AppContext {
   application: INestApplication;
@@ -35,12 +37,13 @@ const contextModule = CqrsModule.configure({
   imports: [
     HelloWorldModule.configure(contextModule),
     WarehouseModule.configure(contextModule),
+    RoastingModule.configure(contextModule),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
       path: '/api/graphql',
     }),
   ],
-  providers: [WarehouseResolver],
+  providers: [WarehouseResolver, RoastingSettingsResolver],
 })
 export class AppModule {}
 

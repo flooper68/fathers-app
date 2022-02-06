@@ -12,6 +12,7 @@ import {
 } from '@nestjs/graphql';
 
 import { WarehouseRoastedCoffeeFeature } from '../modules/warehouse/features/warehouse-roasted-coffee-features';
+import { CommandResult } from './dtos';
 
 @ObjectType()
 export class WarehouseRoastedCoffee {
@@ -26,12 +27,6 @@ export class WarehouseRoastedCoffee {
 
   @Field({ nullable: true })
   lastUpdateReason?: string;
-}
-
-@ObjectType()
-export class CommandResult {
-  @Field()
-  success: boolean;
 }
 
 @InputType()

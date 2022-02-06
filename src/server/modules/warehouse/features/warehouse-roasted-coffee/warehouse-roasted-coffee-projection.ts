@@ -57,9 +57,6 @@ const config = {
           lastUpdated: moment().format(),
         };
       }
-      default: {
-        throw Error(`Unknown event`);
-      }
     }
   },
 };

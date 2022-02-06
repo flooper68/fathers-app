@@ -2,6 +2,13 @@ import mongoose from 'mongoose';
 
 import { getApplicationConfig } from '../../server/application-config';
 
+const collections = [
+  'roasting-settings-news',
+  'warehouse-roasted-coffee-news',
+  'warehouse-roasted-coffee-projection-news',
+  'event-streams',
+];
+
 export const cleanUpData = async () => {
   const applicationConfig = getApplicationConfig();
 
@@ -13,20 +20,12 @@ export const cleanUpData = async () => {
     }
   );
 
-  try {
-    await mongoose.connection
-      .collection('warehouse-roasted-coffee-news')
-      .drop();
-    // eslint-disable-next-line no-empty
-  } catch (e) {}
-  try {
-    await mongoose.connection
-      .collection('warehouse-roasted-coffee-projection-news')
-      .drop();
-    // eslint-disable-next-line no-empty
-  } catch (e) {}
-  try {
-    await mongoose.connection.collection('event-streams').drop();
-    // eslint-disable-next-line no-empty
-  } catch (e) {}
+  await Promise.all(
+    collections.map(async (collection) => {
+      try {
+        await mongoose.connection.collection(collection).drop();
+        // eslint-disable-next-line no-empty
+      } catch (e) {}
+    })
+  );
 };
