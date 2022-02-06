@@ -16,7 +16,6 @@ COPY craco.config.js ./
 COPY .eslintrc ./
 COPY .eslintignore ./
 COPY .prettierrc ./
-COPY jest.config.js ./
 COPY tsconfig.json ./tsconfig.json
 COPY tsconfig.server.json ./tsconfig.server.json
 COPY src ./src
