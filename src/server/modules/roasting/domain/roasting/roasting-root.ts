@@ -1,6 +1,7 @@
 import { Subject } from 'rxjs';
 
 import { AggregateRoot } from '../../../common/aggregate-root';
+import { RoastingSettingsState } from '../settings/roasting-settings-types';
 import {
   RoastingDomainEvent,
   RoastingDomainReducer,
@@ -12,6 +13,7 @@ import {
   RoastingNormalizedState,
   RoastingState,
   RoastingContextExtension,
+  RoastingStatus,
 } from './roasting-types';
 
 export class RoastingRoot extends AggregateRoot<
@@ -40,6 +42,9 @@ export class RoastingRoot extends AggregateRoot<
   static create = (
     props: {
       uuid: string;
+      roastingDate: string;
+      status: RoastingStatus;
+      settings: RoastingSettingsState;
     },
     context: {
       contextExtension: RoastingContextExtension;
@@ -49,6 +54,11 @@ export class RoastingRoot extends AggregateRoot<
     const entity = new RoastingRoot(
       {
         uuid: props.uuid,
+        roastingDate: props.roastingDate,
+        status: RoastingStatus.IN_PLANNING,
+        settings: props.settings,
+        finishedBatches: [],
+        realYield: [],
       },
       context
     );

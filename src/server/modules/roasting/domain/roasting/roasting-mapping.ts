@@ -1,15 +1,11 @@
 import { RoastingNormalizedState, RoastingState } from './roasting-types';
 
 const normalizeState = (state: RoastingState): RoastingNormalizedState => {
-  return {
-    uuid: state.uuid,
-  };
+  return state;
 };
 
 const denormalizeState = (state: RoastingNormalizedState): RoastingState => {
-  return {
-    uuid: state.uuid,
-  };
+  return state;
 };
 
 export const RoastingMapping = {

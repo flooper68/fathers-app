@@ -31,9 +31,7 @@ export interface RoastingState {
   realYield: ReportedYield[];
 }
 
-export interface RoastingNormalizedState {
-  uuid: string;
-}
+export type RoastingNormalizedState = RoastingState;
 
 export type RoastingContextExtension = void;
 
