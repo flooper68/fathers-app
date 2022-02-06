@@ -2,6 +2,7 @@ import { Subject } from 'rxjs';
 
 import { AggregateRoot } from '../../../common/aggregate-root';
 import { RoastingSettingsState } from '../settings/roasting-settings-types';
+import { addOrderAction } from './actions/add-order';
 import {
   RoastingDomainEvent,
   RoastingDomainReducer,
@@ -59,6 +60,8 @@ export class RoastingRoot extends AggregateRoot<
         settings: props.settings,
         finishedBatches: [],
         realYield: [],
+        lineItems: [],
+        orders: [],
       },
       context
     );
@@ -75,4 +78,6 @@ export class RoastingRoot extends AggregateRoot<
   ): RoastingRoot => {
     return new RoastingRoot(props, context);
   };
+
+  addOrder = this.useDomainAction(addOrderAction);
 }

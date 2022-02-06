@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { noop } from 'lodash';
 
-import { RoastingNormalizedState } from './roasting-types';
+import { RoastingLineItem, RoastingNormalizedState } from './roasting-types';
 
 const reducers = {
   // TODO configure eslint
@@ -12,6 +12,17 @@ const reducers = {
     }>
   ) => {
     noop();
+  },
+  OrderAdded: (
+    state: RoastingNormalizedState,
+    action: PayloadAction<{
+      id: number;
+      lineItems: RoastingLineItem[];
+      timestamp: string;
+    }>
+  ) => {
+    state.orders.push({ id: action.payload.id });
+    state.lineItems.push(...action.payload.lineItems);
   },
 };
 

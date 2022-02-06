@@ -10,6 +10,16 @@ export enum RoastingStatus {
   IN_PLANNING = 'IN_PLANNING',
 }
 
+export interface RoastingLineItem {
+  variationId: number;
+  quantity: number;
+  orderId: number;
+}
+
+export interface RoastingOrder {
+  id: number;
+}
+
 export interface FinishedBatch {
   roastedCoffeeUuid: string;
   amount: number;
@@ -25,8 +35,8 @@ export interface RoastingState {
   roastingDate: string;
   status: RoastingStatus;
   settings: RoastingSettingsState;
-  // orders: TODO type of orders
-  // plannedValues
+  orders: RoastingOrder[];
+  lineItems: RoastingLineItem[];
   finishedBatches: FinishedBatch[];
   realYield: ReportedYield[];
 }

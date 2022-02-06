@@ -11,7 +11,7 @@ import {
 import { cleanUpData } from './support/clean-data';
 
 const waitForProjectionTimeout = () =>
-  new Promise((res) => setTimeout(res, 500));
+  new Promise((res) => setTimeout(res, 1000));
 
 test('should add roasted coffee to warehouse', async ({ request }) => {
   await cleanUpData();

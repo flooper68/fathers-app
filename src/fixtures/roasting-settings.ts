@@ -32,7 +32,7 @@ const getRoastedCoffeeTemplate = (): RoastingRoastedCoffee => ({
   greenCoffeeUuid: DEFAULT_GREEN_COFFEE_UUID,
 });
 
-const getTemplate = (): RoastingSettingsState => ({
+export const getRoastingSettingsTemplate = (): RoastingSettingsState => ({
   uuid: DEFAULT_ROASTING_SETTINGS_UUID,
   greenCoffees: [],
   roastedCoffees: [],
@@ -60,7 +60,7 @@ const getRoastedCoffeeFixture = (
 export const getRoastingSettingsFixture = (
   partial: DeepPartial<RoastingSettingsState> = {}
 ): RoastingSettingsState => {
-  const state = merge({}, getTemplate(), partial);
+  const state = merge({}, getRoastingSettingsTemplate(), partial);
 
   state.greenCoffees =
     partial?.greenCoffees?.map((item) => getGreenCoffeeFixture(item)) || [];
