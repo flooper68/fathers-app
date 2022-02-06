@@ -56,6 +56,7 @@ export class RoastingSettingsRoot extends AggregateRoot<
         uuid: props.uuid,
         greenCoffees: [],
         roastedCoffees: [],
+        productVariations: [],
       },
       context
     );
