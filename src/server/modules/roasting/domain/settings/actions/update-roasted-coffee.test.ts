@@ -23,13 +23,16 @@ describe('updateRoastedCoffeeAction', () => {
 
   it('fails if GreenCoffee does not exist', () => {
     const { entity } = buildRoastingSettingsTestHelper({
-      greenCoffees: [],
+      greenCoffees: [{}],
       roastedCoffees: [{ uuid: getProps().uuid }],
     });
 
-    expect(() => entity.updateRoastedCoffee(getProps())).toThrow(
-      GreenCoffeeDoesNotExist
-    );
+    expect(() =>
+      entity.updateRoastedCoffee({
+        ...getProps(),
+        greenCoffeeUuid: 'non-existent',
+      })
+    ).toThrow(GreenCoffeeDoesNotExist);
   });
 
   it('dispatches one domain event', () => {
