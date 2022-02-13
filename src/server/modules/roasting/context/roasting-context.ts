@@ -46,7 +46,8 @@ export class RoastingContext {
         this.store,
         factory,
         transaction,
-        roastingModel
+        roastingModel,
+        roastingSettingsModel
       );
 
       const context = {

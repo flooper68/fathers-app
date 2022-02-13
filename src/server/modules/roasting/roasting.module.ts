@@ -9,6 +9,8 @@ import { RoastingContext } from './context/roasting-context';
 import { RoastingSettingsFeature } from './features/roasting-settings-feature';
 import { UpdateGreenCoffeeCommandHandler } from './features/roasting-settings-feature/update-green-coffee';
 import { RoastingSettingsContext } from './context/roasting-settings-context';
+import { CreateRoastingCommandHandler } from './features/roasting-feature/create-roasting';
+import { RoastingFeature } from './features/roasting-feature';
 
 const RoastingSettingsCommandHandlers = [
   AddGreenCoffeeCommandHandler,
@@ -20,6 +22,8 @@ const RoastingSettingsCommandHandlers = [
 
 const RoastingSettingsQueryHandlers = [GetRoastingSettingsQueryHandler];
 
+const RoastingSettingsHandlers = [CreateRoastingCommandHandler];
+
 @Module({})
 export class RoastingModule {
   static configure = (ContextModule: DynamicModule): DynamicModule => {
@@ -27,14 +31,16 @@ export class RoastingModule {
       module: RoastingModule,
       imports: [ContextModule],
       providers: [
-        RoastingContext,
         RoastingSettingsContext,
-
         ...RoastingSettingsCommandHandlers,
         ...RoastingSettingsQueryHandlers,
         RoastingSettingsFeature,
+
+        RoastingContext,
+        ...RoastingSettingsHandlers,
+        RoastingFeature,
       ],
-      exports: [RoastingSettingsFeature],
+      exports: [RoastingSettingsFeature, RoastingFeature],
     };
   };
 }

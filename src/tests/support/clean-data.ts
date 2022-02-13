@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { getApplicationConfig } from '../../server/application-config';
 
 const collections = [
+  'roasting-news',
   'roasting-settings-news',
   'warehouse-roasted-coffee-news',
   'warehouse-roasted-coffee-projection-news',

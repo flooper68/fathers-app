@@ -7,8 +7,8 @@ import {
   adjustWarehouseRoastedCoffees,
   getWarehouseRoastedCoffees,
   useWarehouseRoastedCoffees,
-} from './integration/warehouse-client';
-import { cleanUpData } from './support/clean-data';
+} from '../integration/warehouse-client';
+import { cleanUpData } from '../support/clean-data';
 
 const waitForProjectionTimeout = () =>
   new Promise((res) => setTimeout(res, 1000));

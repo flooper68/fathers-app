@@ -15,6 +15,7 @@ import { WarehouseRoastedCoffeeFeature } from './modules/warehouse/features/ware
 import { WarehouseResolver } from './api/warehouse-resolver';
 import { RoastingModule } from './modules/roasting/roasting.module';
 import { RoastingSettingsResolver } from './api/roasting-settings-resolver';
+import { RoastingResolver } from './api/roasting-resolver';
 
 export interface AppContext {
   application: INestApplication;
@@ -43,7 +44,7 @@ const contextModule = CqrsModule.configure({
       path: '/api/graphql',
     }),
   ],
-  providers: [WarehouseResolver, RoastingSettingsResolver],
+  providers: [WarehouseResolver, RoastingSettingsResolver, RoastingResolver],
 })
 export class AppModule {}
 

@@ -28,6 +28,6 @@ const schema = new Schema({
 });
 
 // TODO add to DI
-export const roastingModel = model<RoastingDocument>('roasting--new', schema);
+export const roastingModel = model<RoastingDocument>('roasting-new', schema);
 
 export type RoastingModel = typeof roastingModel;
