@@ -1,3 +1,8 @@
+import {
+  getRoastingPlan,
+  RoastingPlan,
+} from './actions/internal/get-roasting-plan';
+import { getLineItemRoastingPlan } from './actions/internal/get-line-item-roasting-plan';
 import { RoastingSettingsState } from './../settings/roasting-settings-types';
 import {
   DomainAction,
@@ -26,7 +31,7 @@ export interface FinishedBatch {
 }
 
 export interface ReportedYield {
-  roastedCoffeeId: string;
+  roastedCoffeeUuid: string;
   weight: number;
 }
 
@@ -38,12 +43,16 @@ export interface RoastingState {
   orders: RoastingOrder[];
   lineItems: RoastingLineItem[];
   finishedBatches: FinishedBatch[];
-  realYield: ReportedYield[];
+  reportedYields: ReportedYield[];
+  roastingPlan?: RoastingPlan;
 }
 
 export type RoastingNormalizedState = RoastingState;
 
-export type RoastingContextExtension = void;
+export type RoastingContextExtension = {
+  getLineItemRoastingPlan: typeof getLineItemRoastingPlan;
+  getRoastingPlan: typeof getRoastingPlan;
+};
 
 export type RoastingContext = DomainActionContext<
   RoastingState,

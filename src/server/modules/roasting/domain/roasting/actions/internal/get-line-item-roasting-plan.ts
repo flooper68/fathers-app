@@ -1,13 +1,32 @@
 import { assertExistence } from '../../../../../common/assert-existence';
 import { RoastingSettingsState } from '../../../settings/roasting-settings-types';
 
-export const getLineItemRoasting = (
+type NotRoasting = {
+  roasted: false;
+};
+
+type RoastingPlan = {
+  roasted: true;
+  orderedWeight: number;
+  neededGreenCoffee: number;
+  numberOfBatchesNeeded: number;
+  greenCoffeeUuid: string;
+  roastedCoffeeUuid: string;
+};
+
+export const isRoastinPlanGuard = (
+  plan: NotRoasting | RoastingPlan
+): plan is RoastingPlan => {
+  return plan.roasted;
+};
+
+export const getLineItemRoastingPlan = (
   lineItem: {
     variationId: number;
     quantity: number;
   },
   settings: RoastingSettingsState
-) => {
+): NotRoasting | RoastingPlan => {
   const variation = settings.productVariations.find(
     (item) => item.id === lineItem.variationId
   );
@@ -15,20 +34,17 @@ export const getLineItemRoasting = (
   if (!variation) {
     return {
       roasted: false,
-      orderedWeight: 0,
-      neededGreenCoffee: 0,
-      numberOfBatchesNeeded: 0,
     };
   }
 
   const roastedCoffee = assertExistence(
     settings.roastedCoffees.find(
-      (coffee) => coffee.uuid === variation?.roastedCoffeeUuid
+      (coffee) => coffee.uuid === variation.roastedCoffeeUuid
     )
   );
   const greenCoffee = assertExistence(
     settings.greenCoffees.find(
-      (coffee) => coffee.uuid === roastedCoffee?.greenCoffeeUuid
+      (coffee) => coffee.uuid === roastedCoffee.greenCoffeeUuid
     )
   );
 

@@ -9,3 +9,12 @@ export const assertExistence = <Value>(
 
   return value;
 };
+
+export const assertType =
+  <P, T extends P>(guard: (value: P) => value is T) =>
+  (value: P) => {
+    if (!guard(value)) {
+      throw new Error(`Assertion failed, value is of unknown type`);
+    }
+    return value;
+  };

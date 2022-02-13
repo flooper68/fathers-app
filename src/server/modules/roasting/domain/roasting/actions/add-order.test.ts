@@ -18,6 +18,7 @@ describe('addOrderAction', () => {
   it('fails if roasting is in IN_PROGRESS status', () => {
     const { entity } = buildRoastingTestHelper({
       status: RoastingStatus.IN_PROGRESS,
+      roastingPlan: { greenCoffees: {}, roastedCoffees: {} },
     });
 
     expect(() => entity.addOrder(getProps())).toThrow(RoastingNotInPlanning);
@@ -26,6 +27,7 @@ describe('addOrderAction', () => {
   it('fails if roasting is in FINISHED status', () => {
     const { entity } = buildRoastingTestHelper({
       status: RoastingStatus.FINISHED,
+      roastingPlan: { greenCoffees: {}, roastedCoffees: {} },
     });
 
     expect(() => entity.addOrder(getProps())).toThrow(RoastingNotInPlanning);

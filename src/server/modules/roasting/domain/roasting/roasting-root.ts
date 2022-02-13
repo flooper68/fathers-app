@@ -1,5 +1,9 @@
 import { Subject } from 'rxjs';
 
+import { finishRoastingAction } from './actions/finish-roasting';
+import { reportRealYieldAction } from './actions/report-real-yield';
+import { startRoastingAction } from './actions/start-roasting';
+import { removeOrderAction } from './actions/remove-order';
 import { AggregateRoot } from '../../../common/aggregate-root';
 import { RoastingSettingsState } from '../settings/roasting-settings-types';
 import { addOrderAction } from './actions/add-order';
@@ -16,12 +20,13 @@ import {
   RoastingContextExtension,
   RoastingStatus,
 } from './roasting-types';
+import { finishBatchAction } from './actions/finish-batch';
 
 export class RoastingRoot extends AggregateRoot<
   RoastingNormalizedState,
   RoastingState,
   RoastingDomainEvent,
-  void
+  RoastingContextExtension
 > {
   private constructor(
     props: RoastingState,
@@ -59,7 +64,7 @@ export class RoastingRoot extends AggregateRoot<
         status: RoastingStatus.IN_PLANNING,
         settings: props.settings,
         finishedBatches: [],
-        realYield: [],
+        reportedYields: [],
         lineItems: [],
         orders: [],
       },
@@ -80,4 +85,9 @@ export class RoastingRoot extends AggregateRoot<
   };
 
   addOrder = this.useDomainAction(addOrderAction);
+  finishBatch = this.useDomainAction(finishBatchAction);
+  removeOrder = this.useDomainAction(removeOrderAction);
+  startRoasting = this.useDomainAction(startRoastingAction);
+  reportRealYield = this.useDomainAction(reportRealYieldAction);
+  finishRoasting = this.useDomainAction(finishRoastingAction);
 }
