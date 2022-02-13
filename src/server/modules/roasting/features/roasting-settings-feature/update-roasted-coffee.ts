@@ -1,4 +1,4 @@
-import { RoastingContext } from '../../context/roasting-context';
+import { RoastingSettingsContext } from '../../context/roasting-settings-context';
 import {
   CommandHandler,
   ICommand,
@@ -17,10 +17,10 @@ export class UpdateRoastedCoffeeCommand
 export class UpdateRoastedCoffeeCommandHandler
   implements ICommandHandler<UpdateRoastedCoffeeCommand>
 {
-  constructor(private readonly context: RoastingContext) {}
+  constructor(private readonly context: RoastingSettingsContext) {}
 
   execute = (command: UpdateRoastedCoffeeCommand): Promise<void> =>
-    this.context.handleWork(async ({ repository }) => {
+    this.context.handleWork(async ({ repository: repository }) => {
       const root = await repository.get();
       root.updateRoastedCoffee(command.payload);
     }, command.payload.correlationUuid);

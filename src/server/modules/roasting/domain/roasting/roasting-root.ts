@@ -49,7 +49,6 @@ export class RoastingRoot extends AggregateRoot<
     props: {
       uuid: string;
       roastingDate: string;
-      status: RoastingStatus;
       settings: RoastingSettingsState;
     },
     context: {

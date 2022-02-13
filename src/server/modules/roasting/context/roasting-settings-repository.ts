@@ -6,7 +6,7 @@ import {
   AggregateRootStoreModel,
   OptimisticTransaction,
 } from './../../common/aggreagte-root-store';
-import { RoastingFactory } from './roasting-factory';
+import { RoastingSettingsFactory } from './roasting-settings-factory';
 
 export const DEFAULT_SETTINGS_UUID = `bf737739-94cd-47a5-80d1-af1a94c15c2a`;
 
@@ -21,7 +21,7 @@ export class RoastingSettingsRepository {
       RoastingSettingsState,
       RoastingSettingsDomainEvent
     >,
-    private readonly factory: RoastingFactory,
+    private readonly factory: RoastingSettingsFactory,
     private readonly transaction: OptimisticTransaction,
     private readonly model: RoastingSettingsModel
   ) {

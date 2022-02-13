@@ -1,4 +1,4 @@
-import { RoastingContext } from '../../context/roasting-context';
+import { RoastingSettingsContext } from '../../context/roasting-settings-context';
 import { EntityNotFoundError } from '../../../common/errors';
 import {
   CommandHandler,
@@ -18,20 +18,23 @@ export class UpdateGreenCoffeeCommand
 export class UpdateGreenCoffeeCommandHandler
   implements ICommandHandler<UpdateGreenCoffeeCommand>
 {
-  constructor(private readonly context: RoastingContext) {}
+  constructor(private readonly context: RoastingSettingsContext) {}
 
   execute = (command: UpdateGreenCoffeeCommand): Promise<void> =>
-    this.context.handleWork(async ({ repository, factory }) => {
-      try {
-        const root = await repository.get();
-        root.updateGreenCoffee(command.payload);
-      } catch (e) {
-        if (e instanceof EntityNotFoundError) {
-          const root = factory.create();
+    this.context.handleWork(
+      async ({ repository: repository, factory: factory }) => {
+        try {
+          const root = await repository.get();
           root.updateGreenCoffee(command.payload);
-        } else {
-          throw e;
+        } catch (e) {
+          if (e instanceof EntityNotFoundError) {
+            const root = factory.create();
+            root.updateGreenCoffee(command.payload);
+          } else {
+            throw e;
+          }
         }
-      }
-    }, command.payload.correlationUuid);
+      },
+      command.payload.correlationUuid
+    );
 }

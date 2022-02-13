@@ -2,17 +2,18 @@ import { v4 } from 'uuid';
 import { Injectable } from '@nestjs/common';
 import { Subject } from 'rxjs';
 
-import { RoastingSettingsDomainEvent } from './../domain/settings/roasting-settings-events';
-import { EventOutbox } from './../../common/event-outbox';
-import { RoastingSettingsRepository } from './roasting-settings-repository';
-import { RoastingFactory } from './roasting-factory';
+import { EventOutbox } from '../../common/event-outbox';
 import { AggregateRootStore } from '../../common/aggreagte-root-store';
 import { roastingSettingsModel } from './roasting-settings-model';
-import { RoastingSettingsRoot } from '../domain/settings/roasting-settings-root';
 import { assertExistence } from '../../common/assert-existence';
+import { RoastingFactory } from './roasting-factory';
+import { RoastingRepository } from './roasting-repository';
+import { RoastingDomainEvent } from '../domain/roasting/roasting-events';
+import { RoastingRoot } from '../domain/roasting/roasting-root';
+import { roastingModel } from './roasting-model';
 
 interface Context {
-  repository: RoastingSettingsRepository;
+  repository: RoastingRepository;
   factory: RoastingFactory;
 }
 
@@ -31,21 +32,21 @@ export class RoastingContext {
     correlationUuid: string
   ) {
     return this.store.withTranscation(async (transaction) => {
-      let hydratedRoot: RoastingSettingsRoot | undefined;
-      const subject = new Subject<RoastingSettingsDomainEvent>();
-      const events: RoastingSettingsDomainEvent[] = [];
+      let hydratedRoot: RoastingRoot | undefined;
+      const subject = new Subject<RoastingDomainEvent>();
+      const events: RoastingDomainEvent[] = [];
       subject.subscribe((event) => events.push(event));
 
-      const onHydrated = (root: RoastingSettingsRoot) => {
+      const onHydrated = (root: RoastingRoot) => {
         hydratedRoot = root;
       };
 
       const factory = new RoastingFactory(subject, onHydrated);
-      const repository = new RoastingSettingsRepository(
+      const repository = new RoastingRepository(
         this.store,
         factory,
         transaction,
-        roastingSettingsModel
+        roastingModel
       );
 
       const context = {

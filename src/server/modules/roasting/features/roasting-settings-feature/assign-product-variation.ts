@@ -1,5 +1,5 @@
 import { AssignProductVariationProps } from './../roasting-settings-feature';
-import { RoastingContext } from '../../context/roasting-context';
+import { RoastingSettingsContext } from '../../context/roasting-settings-context';
 import {
   CommandHandler,
   ICommand,
@@ -17,10 +17,10 @@ export class AssignProductVariationCommand
 export class AssignProductVariationCommandHandler
   implements ICommandHandler<AssignProductVariationCommand>
 {
-  constructor(private readonly context: RoastingContext) {}
+  constructor(private readonly context: RoastingSettingsContext) {}
 
   execute = (command: AssignProductVariationCommand): Promise<void> =>
-    this.context.handleWork(async ({ repository }) => {
+    this.context.handleWork(async ({ repository: repository }) => {
       const root = await repository.get();
       root.assignProductVariation(command.payload);
     }, command.payload.correlationUuid);

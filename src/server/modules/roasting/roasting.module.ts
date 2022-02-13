@@ -8,6 +8,7 @@ import { AddGreenCoffeeCommandHandler } from './features/roasting-settings-featu
 import { RoastingContext } from './context/roasting-context';
 import { RoastingSettingsFeature } from './features/roasting-settings-feature';
 import { UpdateGreenCoffeeCommandHandler } from './features/roasting-settings-feature/update-green-coffee';
+import { RoastingSettingsContext } from './context/roasting-settings-context';
 
 const RoastingSettingsCommandHandlers = [
   AddGreenCoffeeCommandHandler,
@@ -27,6 +28,7 @@ export class RoastingModule {
       imports: [ContextModule],
       providers: [
         RoastingContext,
+        RoastingSettingsContext,
 
         ...RoastingSettingsCommandHandlers,
         ...RoastingSettingsQueryHandlers,

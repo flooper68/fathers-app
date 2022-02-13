@@ -1,20 +1,25 @@
 import { Subject } from 'rxjs';
 
-import { RoastingSettingsState } from '../domain/settings/roasting-settings-types';
-import { RoastingSettingsDomainEvent } from './../domain/settings/roasting-settings-events';
-import { RoastingSettingsRoot } from './../domain/settings/roasting-settings-root';
-import { DEFAULT_SETTINGS_UUID } from './roasting-settings-repository';
+import { RoastingRoot } from './../domain/roasting/roasting-root';
+import { RoastingDomainEvent } from './../domain/roasting/roasting-events';
+import { RoastingState } from '../domain/roasting/roasting-types';
+import { getLineItemRoastingPlan } from '../domain/roasting/actions/internal/get-line-item-roasting-plan';
+import { getRoastingPlan } from '../domain/roasting/actions/internal/get-roasting-plan';
+import { RoastingSettingsState } from './../domain/settings/roasting-settings-types';
 
 export class RoastingFactory {
   constructor(
-    private readonly subject: Subject<RoastingSettingsDomainEvent>,
-    private readonly onHydrated: (root: RoastingSettingsRoot) => void
+    private readonly subject: Subject<RoastingDomainEvent>,
+    private readonly onHydrated: (root: RoastingRoot) => void
   ) {}
 
-  hydrate(state: RoastingSettingsState) {
-    const root = RoastingSettingsRoot.hydrate(state, {
+  hydrate(state: RoastingState) {
+    const root = RoastingRoot.hydrate(state, {
       subject: this.subject,
-      contextExtension: undefined,
+      contextExtension: {
+        getLineItemRoastingPlan,
+        getRoastingPlan,
+      },
     });
 
     this.onHydrated(root);
@@ -22,14 +27,18 @@ export class RoastingFactory {
     return root;
   }
 
-  create() {
-    const root = RoastingSettingsRoot.create(
-      { uuid: DEFAULT_SETTINGS_UUID },
-      {
-        subject: this.subject,
-        contextExtension: undefined,
-      }
-    );
+  create(props: {
+    uuid: string;
+    roastingDate: string;
+    settings: RoastingSettingsState;
+  }) {
+    const root = RoastingRoot.create(props, {
+      subject: this.subject,
+      contextExtension: {
+        getLineItemRoastingPlan,
+        getRoastingPlan,
+      },
+    });
 
     this.onHydrated(root);
 
