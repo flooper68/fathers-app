@@ -52,10 +52,28 @@ export const Products = () => {
         key: 'name',
       },
       {
-        title: 'Pražení',
-        dataIndex: 'roastedCoffee',
-        key: 'roastedCoffee',
-        render: (item: { name?: string }) => <span>{item?.name}</span>,
+        title: 'Kategorie',
+        dataIndex: 'categories',
+        key: 'categories',
+        render: (
+          categories?: {
+            id: number;
+            name: string;
+          }[]
+        ) => {
+          return (
+            <span>
+              {categories
+                ?.map((item) => {
+                  return item.name;
+                })
+                .filter((name) => {
+                  return name === 'Espresso' || name === 'Filtr';
+                })
+                .join(',')}
+            </span>
+          );
+        },
       },
       {
         title: 'Variace',
