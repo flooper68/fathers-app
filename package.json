@@ -9,6 +9,7 @@
     "start": "yarn migrate up && node build-server/src/server/main.js",
     "migrate": "yarn ts-node --project tsconfig.server.json ./migrations/index.ts",
     "generate": "graphql-codegen",
+    "start:domain": "yarn ts-node --files --transpile-only --project tsconfig.server.json src/domain/playground.ts",
     "start:dev": "yarn migrate up && concurrently --names 'CLIENT,SERVER' -c 'red.bold,blue.bold' \"yarn start:dev:client\" \"yarn start:dev:server\"",
     "start:dev:client": "react-scripts start",
     "start:dev:server": "nodemon",
