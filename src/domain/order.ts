@@ -1,11 +1,13 @@
 // Definig shape of types
 
-type OrderItem = {
+import { DomainContext } from './domain-types';
+
+export type OrderItem = {
   productId: number;
   amount: number;
 };
 
-enum OrderStatus {
+export enum OrderStatus {
   Placed = 'Placed',
   Prepared = 'Prepared',
   Shipped = 'Shipped',
@@ -35,7 +37,7 @@ type ShippedOrderState = {
   note?: string;
 };
 
-type OrderState = NewOrderState | PreparedOrderState | ShippedOrderState;
+export type OrderState = NewOrderState | PreparedOrderState | ShippedOrderState;
 
 // Defining events that happen and what they hold
 
@@ -80,7 +82,7 @@ export class OrderShipped {
   ) {}
 }
 
-type OrderDomainEvents =
+export type OrderDomainEvents =
   | OrderCreated
   | OrderPrepared
   | OrderShipped
@@ -89,117 +91,96 @@ type OrderDomainEvents =
 // Implementation
 
 export class NewOrder {
-  private _state: any;
-
   private constructor(
-    props: NewOrderState,
-    private readonly context: {
-      dispatchEvent: (event: any) => void;
-    }
-  ) {
-    this._state = props;
-  }
+    public readonly state: NewOrderState,
+    private readonly context: DomainContext
+  ) {}
 
-  private dispatch(event: OrderCreated | OrderPrepared) {
-    switch (event.type) {
-      case 'OrderCreated': {
-        break;
-      }
-      case 'OrderPrepared': {
-        this._state.status = OrderStatus.Prepared;
-        this._state.note = event.payload.note;
-        break;
-      }
-    }
-    this.context.dispatchEvent(event);
-  }
-
-  static create(
+  static create = (
     props: { id: number; createdAt: string; items: OrderItem[] },
-    dispatchEvent: (event: any) => void
-  ) {
-    const order = new NewOrder(
-      {
-        id: props.id,
-        createdAt: props.createdAt,
-        items: props.items,
-        status: OrderStatus.Placed,
-      },
-      {
-        dispatchEvent,
-      }
-    );
+    context: DomainContext
+  ) => {
+    const state = { ...props, status: OrderStatus.Placed } as const;
 
-    order.dispatch(new OrderCreated(props));
+    context.dispatch(new OrderCreated(state));
 
-    return order;
-  }
+    return new NewOrder(state, context);
+  };
 
-  getState(): Readonly<NewOrderState> {
-    return this._state;
-  }
+  static hydrate = (state: NewOrderState, context: DomainContext) => {
+    return new NewOrder(state, context);
+  };
 
   prepareOrder(note?: string) {
-    this.dispatch(new OrderPrepared({ id: this._state.id, note }));
-    return new FinishedOrder(this._state as PreparedOrderState, this.context);
+    return PreparedOrder.create(
+      {
+        ...this.state,
+        status: OrderStatus.Prepared,
+        note: note,
+      },
+      this.context
+    );
   }
+
+  isNewOrder = (): this is NewOrder => true;
+  isPreparedOrder = (): this is never => false;
+  isShippedOrder = (): this is never => false;
 }
 
-export class FinishedOrder {
-  private _state: any;
+export class PreparedOrder {
+  private constructor(
+    public readonly state: PreparedOrderState,
+    private readonly context: DomainContext
+  ) {}
 
-  constructor(
-    props: OrderState,
-    private readonly context: {
-      dispatchEvent: (event: any) => void;
-    }
-  ) {
-    this._state = props;
-  }
+  static create = (state: PreparedOrderState, context: DomainContext) => {
+    context.dispatch(new OrderPrepared({ id: state.id, note: state.note }));
 
-  private dispatch(event: OrderDomainEvents) {
-    switch (event.type) {
-      case 'OrderCreated': {
-        break;
-      }
-      case 'OrderPrepared': {
-        this._state.status = OrderStatus.Prepared;
-        this._state.note = event.payload.note;
-        break;
-      }
-      case 'OrderNoteChanged': {
-        this._state.note = event.payload.note;
-        break;
-      }
-    }
-    this.context.dispatchEvent(event);
-  }
+    return new PreparedOrder(state, context);
+  };
+
+  static hydrate = (state: PreparedOrderState, context: DomainContext) => {
+    return new PreparedOrder(state, context);
+  };
 
   changeNote(note: string) {
-    this.dispatch(new OrderNoteChanged({ id: this._state.id, note }));
-    return new FinishedOrder(this._state as PreparedOrderState, this.context);
+    this.context.dispatch(new OrderNoteChanged({ id: this.state.id, note }));
+    return new PreparedOrder({ ...this.state, note }, this.context);
   }
 
   shipOrder(shippedDate: string) {
-    this.dispatch(new OrderShipped({ id: this._state.id, shippedDate }));
-    return new ShippedOrder(this._state as ShippedOrderState);
+    return ShippedOrder.create(
+      { ...this.state, shippedDate, status: OrderStatus.Shipped },
+      this.context
+    );
   }
 
-  getState(): Readonly<PreparedOrderState> {
-    return this._state;
-  }
+  isNewOrder = (): this is never => false;
+  isPreparedOrder = (): this is PreparedOrder => true;
+  isShippedOrder = (): this is never => false;
 }
 
 export class ShippedOrder {
-  private _state: ShippedOrderState;
+  private constructor(public readonly state: ShippedOrderState) {}
 
-  constructor(props: ShippedOrderState) {
-    this._state = props;
-  }
+  static create = (state: ShippedOrderState, context: DomainContext) => {
+    context.dispatch(
+      new OrderShipped({
+        id: state.id,
+        shippedDate: state.shippedDate,
+      })
+    );
 
-  getState(): Readonly<ShippedOrderState> {
-    return this._state;
-  }
+    return new ShippedOrder(state);
+  };
+
+  static hydrate = (state: ShippedOrderState) => {
+    return new ShippedOrder(state);
+  };
+
+  isNewOrder = (): this is never => false;
+  isPreparedOrder = (): this is never => false;
+  isShippedOrder = (): this is ShippedOrder => true;
 }
 
-export type Order = NewOrder | FinishedOrder | ShippedOrder;
+export type Order = NewOrder | PreparedOrder | ShippedOrder;
